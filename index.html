@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSPD / LSSD — Report Generator</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        background: #1c1c1c;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px 10px 60px;
+        color: #222;
+    }
+
+    .page-title {
+        text-align: center;
+        color: #fff;
+        margin: 0 0 20px;
+        font-family: "Arial Black", Arial, sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .officer-bar {
+        max-width: 950px;
+        margin: 0 auto 15px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    .officer-bar .field-wrapper { flex: 1; min-width: 180px; margin-bottom: 0; }
+    .officer-bar .field-label { color: #ccc; background: #333; }
+    .officer-bar small { color: #999; display: block; margin-top: 6px; width: 100%; }
+
+    .doc-wrapper {
+        background-color: #fff;
+        color: #000;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        max-width: 950px;
+        margin: 0 auto;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .doc-b-header {
+        background-color: #000;
+        color: #fff;
+        font-family: "Arial Black", Arial, sans-serif;
+        padding: 6px 10px;
+        text-transform: uppercase;
+        font-size: 12px;
+        margin-top: 15px;
+        border: 1px solid #000;
+    }
+
+    .doc-b-content {
+        border: 1px solid #ccc;
+        border-top: none;
+        padding: 10px;
+        background: #fff;
+    }
+
+    .field-wrapper {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .field-label {
+        background: #dddee0;
+        font-weight: bold;
+        font-size: 10px;
+        padding: 4px 6px;
+        text-transform: uppercase;
+        border-bottom: 1px solid #ccc;
+        color: #000;
+    }
+
+    .field-input {
+        border: none;
+        padding: 8px;
+        font-size: 13px;
+        width: 100%;
+        box-sizing: border-box;
+        outline: none;
+        font-family: Arial, sans-serif;
+    }
+    .field-input:focus { background: #f0f8ff; }
+    textarea.field-input { resize: vertical; min-height: 80px; }
+
+    .checkbox-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding: 5px;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        cursor: pointer;
+        background: #fcfcfc;
+        border: 1px solid #eee;
+        padding: 6px;
+        transition: background 0.2s;
+    }
+    .checkbox-label:hover { background: #f0f0f0; border-color: #ccc; }
+    .checkbox-label input { margin: 0; }
+
+    .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; padding: 5px; }
+
+    .grid-2 { display: flex; gap: 10px; }
+    .grid-2 > div { flex: 1; }
+    .grid-3 { display: flex; gap: 10px; }
+    .grid-3 > div { flex: 1; }
+    .grid-4 { display: flex; gap: 10px; }
+    .grid-4 > div { flex: 1; }
+
+    .list-header {
+        display: flex; gap: 2px;
+        background: #333; color: #fff;
+        font-size: 9px; font-weight: bold; text-transform: uppercase;
+        padding: 6px 2px; margin-top: 5px;
+    }
+    .list-row {
+        display: flex; gap: 2px;
+        margin-top: 2px;
+        align-items: center;
+    }
+    .list-row input, .list-row select {
+        width: 100%; border: 1px solid #ccc; padding: 6px; font-size: 11px;
+    }
+
+    .btn-add {
+        width: 100%; background: #eee; border: 1px dashed #999; padding: 6px;
+        cursor: pointer; font-weight: bold; font-size: 11px; margin-top: 5px; text-transform: uppercase;
+    }
+    .btn-add:hover { background: #ddd; }
+    .btn-del {
+        background: #c00; color: #fff; border: none; width: 24px; height: 24px; cursor: pointer; font-weight: bold;
+    }
+
+    .tab-nav { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; max-width: 950px; margin-left:auto; margin-right:auto; }
+    .tab-btn { padding: 10px 15px; background: #f4f4f4; border: 1px solid #ccc; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 10px; }
+    .tab-btn.active { background: #1a2b46; color: #fff; border-color: #000; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .submit-block {
+        margin-top: 10px;
+        padding: 10px 0;
+        border-top: 2px solid #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .button1 {
+        background: #1a2b46;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 3px;
+    }
+    .button1:hover { background: #26406b; }
+
+    .result-block {
+        display: none;
+        max-width: 950px;
+        margin: 20px auto 0;
+        background: #fff;
+        border: 1px solid #ccc;
+        padding: 15px;
+    }
+    .result-block h3 { margin-top: 0; }
+    .result-row { margin-bottom: 12px; }
+    .result-row label { display:block; font-weight:bold; font-size:11px; text-transform:uppercase; margin-bottom:4px; color:#333; }
+    .result-row .copy-line { display:flex; gap:6px; }
+    .result-row input[readonly], .result-row textarea[readonly] {
+        flex: 1;
+        border: 1px solid #ccc;
+        padding: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        background: #f7f7f7;
+    }
+    .result-row textarea[readonly] { min-height: 220px; resize: vertical; }
+    .copy-btn {
+        background: #1a2b46; color: #fff; border: none; padding: 0 14px; cursor: pointer;
+        font-size: 11px; text-transform: uppercase; font-weight: bold; white-space: nowrap;
+    }
+    .copy-btn:hover { background: #26406b; }
+    .copy-btn.copied { background: #2a8a2a; }
+    .result-hint { font-size: 12px; color: #555; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">LSPD / LSSD — Report Generator</h1>
+
+<div class="officer-bar">
+    <div class="field-wrapper">
+        <div class="field-label">Имя офицера</div>
+        <input type="text" class="field-input" id="officerName" placeholder="John Doe">
+    </div>
+    <div class="field-wrapper">
+        <div class="field-label">Серийный номер</div>
+        <input type="text" class="field-input" id="officerSerial" placeholder="1234">
+    </div>
+    <small>Заполняется автоматически во всех отчётах и сохраняется в этом браузере.</small>
+</div>
+
+<div class="tab-nav">
+    <div class="tab-btn active" onclick="setTab('incident', event)">Incident</div>
+    <div class="tab-btn" onclick="setTab('arrest', event)">Arrest</div>
+    <div class="tab-btn" onclick="setTab('traffic', event)">Traffic</div>
+    <div class="tab-btn" onclick="setTab('uof', event)">Use of Force</div>
+    <div class="tab-btn" onclick="setTab('complaint', event)">Complaint</div>
+    <div class="tab-btn" onclick="setTab('property', event)">Property</div>
+    <div class="tab-btn" onclick="setTab('ccw', event)">CCW Notice</div>
+    <div class="tab-btn" onclick="setTab('internal', event)">Internal</div>
+</div>
+
+<div class="doc-wrapper">
+
+    <div id="tab_incident" class="tab-pane active" data-type="INCIDENT">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">INCIDENT REPORT</div><hr>
+        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ</div>
+        <div class="doc-b-content">
+            <div class="grid-4">
+                <div class="field-wrapper"><div class="field-label">ДАТА СОСТАВЛЕНИЯ</div><input type="date" class="field-input i_date_cre"></div>
+                <div class="field-wrapper"><div class="field-label">ВРЕМЯ СОСТАВЛЕНИЯ</div><input type="time" class="field-input i_time_cre"></div>
+                <div class="field-wrapper"><div class="field-label">ДАТА ИНЦИДЕНТА</div><input type="date" class="field-input i_date_inc"></div>
+                <div class="field-wrapper"><div class="field-label">ВРЕМЯ ИНЦИДЕНТА</div><input type="time" class="field-input i_time_inc"></div>
+            </div>
+            <div class="field-wrapper"><div class="field-label">МЕСТО ИНЦИДЕНТА</div><input type="text" class="field-input i_loc" placeholder="Например: Little Seoul, Palomino Ave"></div>
+            <div class="field-wrapper"><div class="field-label">ТИП ИНЦИДЕНТА</div><input type="text" class="field-input i_type" placeholder="Например: 459 PC Burglary"></div>
+        </div>
+        <div class="doc-b-header">ВОВЛЕЧЁННЫЕ ЛИЦА</div>
+        <div class="doc-b-content"><div id="inc_persons"></div><button type="button" class="btn-add" onclick="addIncPerson()">+ ДОБАВИТЬ ЛИЦО</button></div>
+        <div class="doc-b-header">ВОВЛЕЧЁННОЕ ИМУЩЕСТВО</div>
+        <div class="doc-b-content"><div id="inc_props"></div><button type="button" class="btn-add" onclick="addIncProp()">+ ДОБАВИТЬ ИМУЩЕСТВО</button></div>
+        <div class="doc-b-header">MODUS OPERANDI</div>
+        <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input i_mo" style="height:80px" placeholder="Метод совершения преступления"></textarea></div></div>
+        <div class="doc-b-header">ХРОНОЛОГИЧЕСКИЙ ОТЧЕТ</div>
+        <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input i_narr" style="height:250px" placeholder="Подробное описание ситуации"></textarea></div></div>
+        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ОФИЦЕРЕ</div>
+        <div class="doc-b-content">
+            <div class="grid-2"><div class="field-wrapper"><div class="field-label">ИМЯ ОФИЦЕРА</div><input type="text" class="field-input i_off"></div><div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input i_ser"></div></div>
+        </div>
+    </div>
+
+    <div id="tab_arrest" class="tab-pane" data-type="ARREST">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">ARREST REPORT</div><hr>
+        <div class="doc-b-header">СВЕДЕНИЯ ОБ АРЕСТОВАННОМ</div>
+        <div class="doc-b-content">
+            <div class="grid-4">
+                <div class="field-wrapper"><div class="field-label">ИМЯ</div><input type="text" class="field-input a_name"></div>
+                <div class="field-wrapper"><div class="field-label">ФАМИЛИЯ</div><input type="text" class="field-input a_sur"></div>
+                <div class="field-wrapper"><div class="field-label">ВТОРОЕ ИМЯ</div><input type="text" class="field-input a_mid"></div>
+                <div class="field-wrapper"><div class="field-label">ПРОЗВИЩЕ</div><input type="text" class="field-input a_alias"></div>
+            </div>
+            <div class="grid-3">
+                <div class="field-wrapper"><div class="field-label">ПОЛ</div><select class="field-input a_sex"><option>M</option><option>F</option></select></div>
+                <div class="field-wrapper"><div class="field-label">НАЦИОНАЛЬНОСТЬ</div><input type="text" class="field-input a_nat"></div>
+                <div class="field-wrapper"><div class="field-label">ЦВЕТ ВОЛОС</div><input type="text" class="field-input a_hair"></div>
+            </div>
+            <div class="grid-3">
+                <div class="field-wrapper"><div class="field-label">ЦВЕТ ГЛАЗ</div><input type="text" class="field-input a_eyes"></div>
+                <div class="field-wrapper"><div class="field-label">РОСТ</div><input type="text" class="field-input a_hgt"></div>
+                <div class="field-wrapper"><div class="field-label">ВЕС</div><input type="text" class="field-input a_wgt"></div>
+            </div>
+            <div class="grid-3">
+                <div class="field-wrapper"><div class="field-label">ДАТА РОЖДЕНИЯ</div><input type="date" class="field-input a_dob"></div>
+                <div class="field-wrapper"><div class="field-label">ВОЗРАСТ</div><input type="text" class="field-input a_age"></div>
+                <div class="field-wrapper"><div class="field-label">МЕСТО СОДЕРЖАНИЯ</div><input type="text" class="field-input a_jail"></div>
+            </div>
+        </div>
+        <div class="doc-b-header">СВЕДЕНИЯ ОБ АРЕСТЕ</div>
+        <div class="doc-b-content">
+             <div class="grid-3">
+                <div class="field-wrapper"><div class="field-label">МЕСТО ЗАДЕРЖАНИЯ</div><input type="text" class="field-input a_loc_arr"></div>
+                <div class="field-wrapper"><div class="field-label">ДАТА ЗАДЕРЖАНИЯ</div><input type="date" class="field-input a_date_arr"></div>
+                <div class="field-wrapper"><div class="field-label">ВРЕМЯ ЗАДЕРЖАНИЯ</div><input type="time" class="field-input a_time_arr"></div>
+            </div>
+            <div class="field-wrapper"><div class="field-label">ОБВИНЕНИЕ</div><input type="text" class="field-input a_charge"></div>
+            <div class="grid-3">
+                <div class="field-wrapper"><div class="field-label">МЕСТО СОВЕРШЕНИЯ</div><input type="text" class="field-input a_loc_crime"></div>
+                <div class="field-wrapper"><div class="field-label">ЗАДЕРЖИВАЮЩИЙ ОФИЦЕР</div><input type="text" class="field-input a_off"></div>
+                <div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input a_ser"></div>
+            </div>
+        </div>
+        <div class="doc-b-header">ДРУГИЕ ВОВЛЕЧЁННЫЕ ЛИЦА</div>
+        <div class="doc-b-content"><div id="arr_persons"></div><button type="button" class="btn-add" onclick="addArrPerson()">+ ДОБАВИТЬ ЛИЦО</button></div>
+        <div class="doc-b-header">ПОДРОБНОСТИ ИНЦИДЕНТА</div>
+        <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input a_narr" style="height:200px"></textarea></div></div>
+        <div class="doc-b-header">ИЗЪЯТОЕ ИМУЩЕСТВО</div>
+        <div class="doc-b-content"><div id="arr_props"></div><button type="button" class="btn-add" onclick="addArrProp()">+ ДОБАВИТЬ ИМУЩЕСТВО</button></div>
+    </div>
+
+    <div id="tab_traffic" class="tab-pane" data-type="TRAFFIC">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">TRAFFIC COLLISION REPORT</div><hr>
+
+        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ</div>
+        <div class="doc-b-content">
+            <div class="field-wrapper"><div class="field-label">АДРЕС, ГДЕ ПРОИЗОШЁЛ ИНЦИДЕНТ</div><input type="text" class="field-input t_addr" placeholder="Например: E SLAUSON AV / S SAN PEDRO ST"></div>
+            <div class="grid-2">
+                 <div class="field-wrapper"><div class="field-label">ДАТА</div><input type="date" class="field-input t_date"></div>
+                 <div class="field-wrapper"><div class="field-label">ВРЕМЯ</div><input type="time" class="field-input t_time"></div>
+            </div>
+            <div class="grid-2">
+                 <div class="field-wrapper"><div class="field-label">ОФИЦЕР, СОСТАВИВШИЙ РЕПОРТ</div><input type="text" class="field-input t_off"></div>
+                 <div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input t_ser"></div>
+            </div>
+        </div>
+
+        <div class="doc-b-header">ДЕТАЛИ ИНЦИДЕНТА (УЧАСТНИКИ)</div>
+        <div class="doc-b-content">
+            <div class="grid-2">
+                <div style="border-right: 1px dashed #ccc; padding-right: 10px;">
+                    <div style="text-align:center; font-weight:bold; margin-bottom:5px;">УЧАСТНИК-1</div>
+                    <div class="field-wrapper"><div class="field-label">ИМЯ ВОДИТЕЛЯ</div><input type="text" class="field-input t_p1_name" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">НОМЕР ЛИЦЕНЗИИ</div><input type="text" class="field-input t_p1_lic" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">ГОД, МАРКА АВТО</div><input type="text" class="field-input t_p1_car" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">НОМЕР АВТО</div><input type="text" class="field-input t_p1_plate" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">СТРАХОВАЯ КОМПАНИЯ</div><input type="text" class="field-input t_p1_ins" placeholder="Пусто"></div>
+                </div>
+                <div style="padding-left: 10px;">
+                    <div style="text-align:center; font-weight:bold; margin-bottom:5px;">УЧАСТНИК-2</div>
+                    <div class="field-wrapper"><div class="field-label">ИМЯ ВОДИТЕЛЯ</div><input type="text" class="field-input t_p2_name" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">НОМЕР ЛИЦЕНЗИИ</div><input type="text" class="field-input t_p2_lic" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">ГОД, МАРКА АВТО</div><input type="text" class="field-input t_p2_car" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">НОМЕР АВТО</div><input type="text" class="field-input t_p2_plate" placeholder="Пусто"></div>
+                    <div class="field-wrapper"><div class="field-label">СТРАХОВАЯ КОМПАНИЯ</div><input type="text" class="field-input t_p2_ins" placeholder="Пусто"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="doc-b-header">УСЛОВИЯ СТОЛКНОВЕНИЯ</div>
+        <div class="doc-b-content">
+            <div class="grid-3">
+                <div class="field-wrapper"><div class="field-label">ТИП СТОЛКНОВЕНИЯ</div><input type="text" class="field-input t_type" placeholder="Боковое"></div>
+                <div class="field-wrapper"><div class="field-label">ПОГОДНЫЕ УСЛОВИЯ</div><input type="text" class="field-input t_weather" placeholder="Ясно"></div>
+                <div class="field-wrapper"><div class="field-label">ДОРОЖНЫЕ УСЛОВИЯ</div><input type="text" class="field-input t_road" placeholder="Сухо"></div>
+            </div>
+            <div class="field-wrapper"><div class="field-label">ПОДРОБНОСТИ ОБ ИНЦИДЕНТЕ</div><textarea class="field-input t_narr" style="height:150px" placeholder="Пусто"></textarea></div>
+        </div>
+
+        <div class="doc-b-header">ЗАКЛЮЧИТЕЛЬНЫЕ ПРИЧИНЫ СТОЛКНОВЕНИЯ</div>
+        <div class="doc-b-content">
+            <div class="field-wrapper"><textarea class="field-input t_concl" style="height:80px" placeholder="Пусто"></textarea></div>
+        </div>
+
+        <div class="doc-b-header">ДОПОЛНИТЕЛЬНО</div>
+        <div class="doc-b-content">
+            <div class="checkbox-group" style="justify-content: space-around;">
+                <label class="checkbox-label"><input type="checkbox" class="t_inj"> <span style="font-weight:bold;">ИМЕЮТСЯ ПОСТРАДАВШИЕ</span></label>
+                <label class="checkbox-label"><input type="checkbox" class="t_tow"> <span style="font-weight:bold;">ТРАНСПОРТ ЭВАКУИРОВАН</span></label>
+                <label class="checkbox-label"><input type="checkbox" class="t_cit"> <span style="font-weight:bold;">ВЫПИСАНЫ ШТРАФЫ</span></label>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab_uof" class="tab-pane" data-type="UOF">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">USE OF FORCE REPORT</div><hr>
+        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ</div>
+        <div class="doc-b-content">
+             <div class="grid-2">
+                <div class="field-wrapper"><div class="field-label">СУБЪЕКТ (К КОМУ ПРИМЕНЕНО)</div><input type="text" class="field-input u_sub"></div>
+                <div class="field-wrapper"><div class="field-label">ТИП ВЫЗОВА / ИНЦИДЕНТА</div><input type="text" class="field-input u_type"></div>
+             </div>
+        </div>
+
+        <div class="doc-b-header">ПРИЧИНА ПРИМЕНЕНИЯ СИЛЫ</div>
+        <div class="doc-b-content">
+            <div class="checkbox-grid-3">
+                <label class="checkbox-label"><input type="checkbox" id="u_res_1" value="Неподчинение"> Неподчинение</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_res_2" value="Пассивное сопротивление"> Пассивное сопротивление</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_res_3" value="Активное сопротивление"> Активное сопротивление</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_res_4" value="Нападение на офицера"> Нападение на офицера</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_res_5" value="Угроза жизни"> Угроза жизни</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_res_6" value="Попытка побега"> Попытка побега</label>
+            </div>
+        </div>
+
+        <div class="doc-b-header">ИСПОЛЬЗОВАННЫЕ СРЕДСТВА</div>
+        <div class="doc-b-content">
+            <div class="checkbox-grid-3">
+                <label class="checkbox-label"><input type="checkbox" id="u_tool_1" value="Физическая сила"> Физическая сила</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_tool_2" value="Тазер"> Тазер</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_tool_3" value="Дубинка"> Дубинка</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_tool_4" value="Перцовый баллон"> Перцовый баллон</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_tool_5" value="Beanbag (Less-Lethal)"> Beanbag (Less-Lethal)</label>
+                <label class="checkbox-label"><input type="checkbox" id="u_tool_6" value="Огнестрельное"> Огнестрельное</label>
+            </div>
+        </div>
+
+        <div class="doc-b-header">ПОДРОБНОСТИ (NARRATIVE)</div>
+        <div class="doc-b-content">
+            <div class="field-wrapper"><div class="field-label">ОПИСАНИЕ СИТУАЦИИ</div><textarea class="field-input u_narr" style="height:200px"></textarea></div>
+        </div>
+    </div>
+
+    <div id="tab_complaint" class="tab-pane" data-type="COMPLAINT">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">COMPLAINT FORM</div><hr>
+        <div class="doc-b-header">ИНФОРМАЦИЯ О ЗАЯВИТЕЛЕ</div>
+        <div class="doc-b-content">
+            <div class="grid-2">
+                 <div class="field-wrapper"><div class="field-label">ИМЯ, ФАМИЛИЯ</div><input type="text" class="field-input c_name"></div>
+                 <div class="field-wrapper"><div class="field-label">ТЕЛЕФОН</div><input type="text" class="field-input c_phone"></div>
+            </div>
+            <div class="grid-2">
+                 <div class="field-wrapper"><div class="field-label">АДРЕС ПРОЖИВАНИЯ</div><input type="text" class="field-input c_addr"></div>
+                 <div class="field-wrapper"><div class="field-label">ДАТА РОЖДЕНИЯ</div><input type="date" class="field-input c_dob"></div>
+            </div>
+        </div>
+        <div class="doc-b-header">ДЕТАЛИ ИНЦИДЕНТА</div>
+        <div class="doc-b-content">
+            <div class="field-wrapper"><div class="field-label">ТИП ПРОИСШЕСТВИЯ</div><input type="text" class="field-input c_type" placeholder="Кража, нападение..."></div>
+            <div class="grid-2">
+                 <div class="field-wrapper"><div class="field-label">ДАТА</div><input type="date" class="field-input c_date"></div>
+                 <div class="field-wrapper"><div class="field-label">МЕСТО</div><input type="text" class="field-input c_loc"></div>
+            </div>
+            <div class="field-wrapper"><div class="field-label">ДЕТАЛИ / ПОКАЗАНИЯ</div><textarea class="field-input c_narr" style="height:200px"></textarea></div>
+            <div class="grid-2">
+                 <div class="field-wrapper"><div class="field-label">ВОВЛЕЧЁННЫЕ ЛИЦА</div><input type="text" class="field-input c_pers"></div>
+                 <div class="field-wrapper"><div class="field-label">ВОВЛЕЧЁННОЕ ИМУЩЕСТВО</div><input type="text" class="field-input c_prop"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab_property" class="tab-pane" data-type="PROPERTY">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">PROPERTY REPORT</div><hr>
+        <div class="doc-b-header">ВЛАДЕЛЕЦ ИМУЩЕСТВА</div>
+        <div class="doc-b-content">
+            <div class="grid-2"><div class="field-wrapper"><div class="field-label">ИМЯ ВЛАДЕЛЬЦА</div><input type="text" class="field-input pr_own_name"></div><div class="field-wrapper"><div class="field-label">АДРЕС</div><input type="text" class="field-input pr_addr"></div></div>
+            <div class="field-wrapper"><div class="field-label">ПРИЧИНА ИЗЪЯТИЯ</div><input type="text" class="field-input pr_reason"></div>
+        </div>
+        <div class="doc-b-header">СПИСОК ИМУЩЕСТВА</div>
+        <div class="doc-b-content"><div id="list_props_full"></div><button type="button" class="btn-add" onclick="addPropFull()">+ ДОБАВИТЬ ЗАПИСЬ</button></div>
+    </div>
+
+    <div id="tab_ccw" class="tab-pane" data-type="CCW">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">NOTICE OF CCW SUSPENSION</div><hr>
+        <div class="doc-b-header">ИНФОРМАЦИЯ О ЛИЦЕНЗИАТЕ</div>
+        <div class="doc-b-content">
+            <div class="grid-2"><div class="field-wrapper"><div class="field-label">ИМЯ ФАМИЛИЯ</div><input type="text" class="field-input ccw_name"></div><div class="field-wrapper"><div class="field-label">НОМЕР ЛИЦЕНЗИИ CCW</div><input type="text" class="field-input ccw_num"></div></div>
+            <div class="grid-2"><div class="field-wrapper"><div class="field-label">АДРЕС</div><input type="text" class="field-input ccw_addr"></div><div class="field-wrapper"><div class="field-label">ТЕЛЕФОН</div><input type="text" class="field-input ccw_phone"></div></div>
+        </div>
+        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ</div>
+        <div class="doc-b-content">
+             <div class="grid-3"><div class="field-wrapper"><div class="field-label">КЕЙС/ИНЦИДЕНТ #</div><input type="text" class="field-input ccw_case"></div><div class="field-wrapper"><div class="field-label">ДАТА</div><input type="date" class="field-input ccw_date"></div><div class="field-wrapper"><div class="field-label">ОФИЦЕР</div><input type="text" class="field-input ccw_off"></div></div>
+        </div>
+        <div class="doc-b-header">ПРИЧИНА И ИЗЪЯТИЕ</div>
+        <div class="doc-b-content">
+            <div class="field-wrapper"><div class="field-label">ПРИЧИНА</div><input type="text" class="field-input ccw_reason"></div>
+            <div class="field-wrapper"><div class="field-label">НАРРАТИВ</div><textarea class="field-input ccw_narr" style="height:100px"></textarea></div>
+             <div class="grid-3"><div class="field-wrapper"><div class="field-label">МАРКА (MAKE)</div><input type="text" class="field-input ccw_make"></div><div class="field-wrapper"><div class="field-label">МОДЕЛЬ (MODEL)</div><input type="text" class="field-input ccw_model"></div><div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input ccw_serial"></div></div>
+        </div>
+    </div>
+
+    <div id="tab_internal" class="tab-pane" data-type="INTERNAL">
+        <div style="text-align:center; font-weight:bold; font-size:18px;">INTERNAL COMPLAINT</div><hr>
+        <div class="doc-b-header">ИНФОРМАЦИЯ О ЗАЯВИТЕЛЕ</div>
+        <div class="doc-b-content">
+            <div class="grid-2"><div class="field-wrapper"><div class="field-label">ИМЯ ФАМИЛИЯ</div><input type="text" class="field-input int_rp_name"></div><div class="field-wrapper"><div class="field-label">ТЕЛЕФОН</div><input type="text" class="field-input int_rp_phone"></div></div>
+            <div class="grid-2"><div class="field-wrapper"><div class="field-label">АДРЕС</div><input type="text" class="field-input int_rp_addr"></div><div class="field-wrapper"><div class="field-label">ДАТА РОЖДЕНИЯ / ID</div><input type="text" class="field-input int_rp_id"></div></div>
+        </div>
+        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ</div>
+        <div class="doc-b-content"><div class="grid-3"><div class="field-wrapper"><div class="field-label">ДАТА</div><input type="date" class="field-input int_date"></div><div class="field-wrapper"><div class="field-label">ВРЕМЯ</div><input type="time" class="field-input int_time"></div><div class="field-wrapper"><div class="field-label">ЛОКАЦИЯ</div><input type="text" class="field-input int_loc"></div></div></div>
+        <div class="doc-b-header">ОБВИНЯЕМЫЕ СОТРУДНИКИ</div>
+        <div class="doc-b-content"><div id="int_accused"></div><button type="button" class="btn-add" onclick="addIntAccused()">+ ДОБАВИТЬ СОТРУДНИКА</button></div>
+        <div class="doc-b-header">СВИДЕТЕЛИ</div>
+        <div class="doc-b-content"><div id="int_witness"></div><button type="button" class="btn-add" onclick="addIntWitness()">+ ДОБАВИТЬ СВИДЕТЕЛЯ</button></div>
+        <div class="doc-b-header">СУТЬ ЖАЛОБЫ</div>
+        <div class="doc-b-content"><div class="field-wrapper"><div class="field-label">ХАРАКТЕР ЖАЛОБЫ</div><input type="text" class="field-input int_allegation"></div><div class="field-wrapper"><div class="field-label">ОПИСАНИЕ</div><textarea class="field-input int_narr" style="height:250px"></textarea></div></div>
+    </div>
+
+    <div class="submit-block">
+        <button type="button" id="submitBtn" class="button1" style="font-size:16px; padding:10px 15px;">
+            СГЕНЕРИРОВАТЬ BBCODE
+        </button>
+    </div>
+</div>
+
+<div class="result-block" id="resultBlock">
+    <h3>Готово — скопируйте и вставьте на форум</h3>
+    <div class="result-row">
+        <label>Заголовок темы</label>
+        <div class="copy-line">
+            <input type="text" id="outTitle" readonly>
+            <button type="button" class="copy-btn" onclick="copyField('outTitle', this)">Копировать</button>
+        </div>
+    </div>
+    <div class="result-row">
+        <label>Текст сообщения (BBCode)</label>
+        <div class="copy-line">
+            <textarea id="outBB" readonly></textarea>
+            <button type="button" class="copy-btn" onclick="copyField('outBB', this)">Копировать</button>
+        </div>
+        <div class="result-hint">Теги вида [coll], [a], [doc_b], [textarea] и т.д. — это кастомные BBCode-теги. Они отобразятся корректно только на форуме, где такие теги уже настроены (как было на исходном phpBB). Если на вашем XenForo эти теги ещё не добавлены, их нужно предварительно создать через ACP → BB Codes.</div>
+    </div>
+</div>
+
+<script>
+// ---------- tabs ----------
+function setTab(name, evt) {
+    var panes = document.getElementsByClassName('tab-pane');
+    for (var i = 0; i < panes.length; i++) panes[i].classList.remove('active');
+    var btns = document.getElementsByClassName('tab-btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    document.getElementById('tab_' + name).classList.add('active');
+    if (evt) evt.currentTarget.classList.add('active');
+    document.getElementById('resultBlock').style.display = 'none';
+}
+
+function removeRow(btn) { btn.parentNode.parentNode.removeChild(btn.parentNode); }
+function getCheck(el) { return (el && el.checked) ? '[cbf][/cbf]' : '[cb][/cb]'; }
+
+function addDynamicRow(containerId, htmlContent) {
+    var div = document.createElement('div');
+    div.className = 'list-row';
+    div.innerHTML = htmlContent;
+    document.getElementById(containerId).appendChild(div);
+}
+
+function addIncPerson() {
+    addDynamicRow('inc_persons', '<div style="flex:1"><select class="ip_type"><option>Подозреваемый</option><option>Пострадавший</option><option>Свидетель</option></select></div><div style="flex:2"><input type="text" class="ip_name" placeholder="Имя"></div><div style="flex:1"><input type="text" class="ip_dob" placeholder="ДД/ММ/ГГ"></div><div style="flex:0.5"><select class="ip_sex"><option>M</option><option>Ж</option></select></div><div style="flex:0.5"><select class="ip_race"><option>Б</option><option>Ч</option><option>Л</option><option>Др.</option></select></div><div style="flex:1"><input type="text" class="ip_phone" placeholder="Тел"></div><button type="button" class="btn-del" onclick="removeRow(this)">x</button>');
+}
+
+function addIncProp() {
+    addDynamicRow('inc_props', '<div style="flex:1"><select class="ipr_stat"><option>Улика</option><option>Украдено</option><option>Повреждено</option></select></div><div style="flex:2"><input type="text" class="ipr_name" placeholder="Название"></div><div style="flex:2"><input type="text" class="ipr_desc" placeholder="Описание"></div><div style="flex:1"><input type="text" class="ipr_val" placeholder="$"></div><button type="button" class="btn-del" onclick="removeRow(this)">x</button>');
+}
+
+function addArrPerson() {
+    addDynamicRow('arr_persons', '<div style="flex:2"><input type="text" class="ap_name" placeholder="Имя"></div><div style="flex:3"><input type="text" class="ap_det" placeholder="Детали (пол, раса, дата рождения)"></div><button type="button" class="btn-del" onclick="removeRow(this)">x</button>');
+}
+
+function addArrProp() {
+    addDynamicRow('arr_props', '<div style="flex:1"><input type="number" class="apr_qty" value="1"></div><div style="flex:1"><input type="text" class="apr_type" placeholder="Тип"></div><div style="flex:2"><input type="text" class="apr_mod" placeholder="Модель"></div><div style="flex:2"><input type="text" class="apr_desc" placeholder="Разное"></div><button type="button" class="btn-del" onclick="removeRow(this)">x</button>');
+}
+
+function addIntAccused() {
+    addDynamicRow('int_accused', '<div style="flex:2"><input type="text" class="ia_name" placeholder="Имя Фамилия"></div><div style="flex:1"><input type="text" class="ia_ser" placeholder="Серийный"></div><div style="flex:1"><input type="text" class="ia_rank" placeholder="Звание"></div><div style="flex:1"><input type="text" class="ia_div" placeholder="Дивизион"></div><button type="button" class="btn-del" onclick="removeRow(this)">x</button>');
+}
+
+function addIntWitness() {
+    addDynamicRow('int_witness', '<div style="flex:2"><input type="text" class="iw_name" placeholder="Имя"></div><div style="flex:1"><input type="text" class="iw_phone" placeholder="Телефон"></div><div style="flex:2"><input type="text" class="iw_addr" placeholder="Адрес"></div><button type="button" class="btn-del" onclick="removeRow(this)">x</button>');
+}
+
+function addPropFull() {
+    addDynamicRow('list_props_full', '<div style="flex:1"><input type="number" class="p_qty" value="1"></div><div style="flex:2"><input type="text" class="p_name" placeholder="Предмет"></div><div style="flex:3"><input type="text" class="p_desc" placeholder="Описание"></div><div style="flex:1"><input type="text" class="p_val" placeholder="Цена"></div><button type="button" class="btn-del" onclick="removeRow(this)">x</button>');
+}
+
+addIncPerson(); addIncProp(); addArrPerson(); addArrProp(); addIntAccused(); addIntWitness(); addPropFull();
+
+// ---------- officer name/serial persistence ----------
+var officerNameInput = document.getElementById('officerName');
+var officerSerialInput = document.getElementById('officerSerial');
+
+function loadOfficerDefaults() {
+    var savedName = localStorage.getItem('rg_officerName') || '';
+    var savedSerial = localStorage.getItem('rg_officerSerial') || '';
+    officerNameInput.value = savedName;
+    officerSerialInput.value = savedSerial;
+    applyOfficerDefaults();
+}
+
+function applyOfficerDefaults() {
+    var name = officerNameInput.value;
+    var serial = officerSerialInput.value;
+    document.querySelectorAll('.i_off, .a_off, .t_off, .ccw_off').forEach(function (el) {
+        if (!el.value) el.value = name;
+    });
+    document.querySelectorAll('.i_ser, .a_ser, .t_ser').forEach(function (el) {
+        if (!el.value) el.value = serial;
+    });
+}
+
+officerNameInput.addEventListener('input', function () {
+    localStorage.setItem('rg_officerName', officerNameInput.value);
+});
+officerSerialInput.addEventListener('input', function () {
+    localStorage.setItem('rg_officerSerial', officerSerialInput.value);
+});
+
+// ---------- default dates ----------
+function setDefaultDate() {
+    var today = new Date().toISOString().slice(0, 10);
+    var cre = document.querySelector('.i_date_cre');
+    if (cre && !cre.value) cre.value = today;
+}
+
+loadOfficerDefaults();
+setDefaultDate();
+
+// ---------- copy to clipboard ----------
+function copyField(id, btn) {
+    var el = document.getElementById(id);
+    el.select();
+    el.setSelectionRange(0, 999999);
+    var text = el.value;
+    var done = function () {
+        var original = btn.textContent;
+        btn.textContent = 'Скопировано!';
+        btn.classList.add('copied');
+        setTimeout(function () { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () { document.execCommand('copy'); done(); });
+    } else {
+        document.execCommand('copy');
+        done();
+    }
+}
+
+// ---------- generation ----------
+document.getElementById('submitBtn').onclick = function () {
+    applyOfficerDefaults();
+
+    var d = new Date();
+    var cid = d.getFullYear().toString().substr(-2) + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + "-" + Math.floor(Math.random() * 9000 + 1000);
+    var active = document.querySelector('.tab-pane.active');
+    var type = active.getAttribute('data-type');
+    var bb = ""; var subj = "";
+
+    if (type === 'INCIDENT') {
+        var pCont = document.getElementById('inc_persons').children;
+        var pBB = "";
+        for (var i = 0; i < pCont.length; i++) {
+            pBB += "[coll6][a]" + pCont[i].querySelector('.ip_type').value + "[/a]|[a]" + pCont[i].querySelector('.ip_name').value + "[/a]|[a]" + pCont[i].querySelector('.ip_dob').value + "[/a]|[a]" + pCont[i].querySelector('.ip_sex').value + "[/a]|[a]" + pCont[i].querySelector('.ip_race').value + "[/a]|[a]" + pCont[i].querySelector('.ip_phone').value + "[/a][/coll6]\n";
+        }
+
+        var prCont = document.getElementById('inc_props').children;
+        var prBB = "";
+        for (var i = 0; i < prCont.length; i++) {
+            prBB += "[coll4][a]" + prCont[i].querySelector('.ipr_stat').value + "[/a]|[a]" + prCont[i].querySelector('.ipr_name').value + "[/a]|[a]" + prCont[i].querySelector('.ipr_desc').value + "[/a]|[a]" + prCont[i].querySelector('.ipr_val').value + "[/a][/coll4]\n";
+        }
+
+        subj = "[INCIDENT-" + cid + "] " + active.querySelector('.i_type').value;
+        bb = "[textarea][coll][size=150][b]INCIDENT REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
+             "[doc_b=Информация об инциденте][coll4][a=Дата составления]" + active.querySelector('.i_date_cre').value + "[/a]|[a=Время составления]" + active.querySelector('.i_time_cre').value + "[/a]|[a=Дата инцидента]" + active.querySelector('.i_date_inc').value + "[/a]|[a=Время инцидента]" + active.querySelector('.i_time_inc').value + "[/a][/coll4]" +
+             "[a=Место инцидента]" + active.querySelector('.i_loc').value + "[/a][a=Тип инцидента]" + active.querySelector('.i_type').value + "[/a][/doc_b]" +
+             "[doc_b=Вовлечённые лица][coll6]Тип|Имя|Дата рождения|Пол|Раса|Тел[/coll6]" + pBB + "[/doc_b]" +
+             "[doc_b=Вовлечённое имущество][coll4]Статус|Наименование|Описание|Стоимость[/coll4]" + prBB + "[/doc_b]" +
+             "[doc_b=MODUS OPERANDI][a]" + active.querySelector('.i_mo').value + "[/a][/doc_b]" +
+             "[doc_b=Хронологический отчет][a]" + active.querySelector('.i_narr').value + "[/a][/doc_b]" +
+             "[doc_b=Информация об офицере][coll][a=Имя офицера]" + active.querySelector('.i_off').value + "[/a]|[a=Серийный номер]" + active.querySelector('.i_ser').value + "[/a][/coll][/doc_b][/textarea]";
+    }
+
+    else if (type === 'ARREST') {
+        var pCont = document.getElementById('arr_persons').children;
+        var pBB = "";
+        for (var i = 0; i < pCont.length; i++) pBB += "[coll][a=Имя другого вовлечённого лица]" + pCont[i].querySelector('.ap_name').value + "[/a]|[a=Детали (пол, цвет кожи, дата рождения)]" + pCont[i].querySelector('.ap_det').value + "[/a][/coll]\n";
+
+        var prCont = document.getElementById('arr_props').children;
+        var prBB = "";
+        for (var i = 0; i < prCont.length; i++) prBB += "[coll4][a]" + prCont[i].querySelector('.apr_qty').value + "[/a]|[a]" + prCont[i].querySelector('.apr_type').value + "[/a]|[a]" + prCont[i].querySelector('.apr_mod').value + "[/a]|[a]" + prCont[i].querySelector('.apr_desc').value + "[/a][/coll4]\n";
+
+        subj = "[ARREST-" + cid + "] " + active.querySelector('.a_name').value + " " + active.querySelector('.a_sur').value;
+        bb = "[textarea][coll][size=150][b]ARREST REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
+             "[doc_b=СВЕДЕНИЯ ОБ АРЕСТОВАННОМ][coll4][a=Имя]" + active.querySelector('.a_name').value + "[/a]|[a=Фамилия]" + active.querySelector('.a_sur').value + "[/a]|[a=Второе имя]" + active.querySelector('.a_mid').value + "[/a]|[a=Прозвище]" + active.querySelector('.a_alias').value + "[/a][/coll4]" +
+             "[coll6][a=Пол]" + active.querySelector('.a_sex').value + "[/a]|[a=Национальность]" + active.querySelector('.a_nat').value + "[/a]|[a=Цвет волос]" + active.querySelector('.a_hair').value + "[/a]|[a=Цвет глаз]" + active.querySelector('.a_eyes').value + "[/a]|[a=Рост]" + active.querySelector('.a_hgt').value + "[/a]|[a=Вес]" + active.querySelector('.a_wgt').value + "[/a][/coll6]" +
+             "[coll3][a=Дата рождения]" + active.querySelector('.a_dob').value + "[/a]|[a=Возраст]" + active.querySelector('.a_age').value + "[/a]|[a=Место содержания]" + active.querySelector('.a_jail').value + "[/a][/coll3][/doc_b]" +
+             "[doc_b=СВЕДЕНИЯ ОБ АРЕСТЕ][coll3][a=Место задержания]" + active.querySelector('.a_loc_arr').value + "[/a]|[a=Дата задержания]" + active.querySelector('.a_date_arr').value + "[/a]|[a=Время задержания]" + active.querySelector('.a_time_arr').value + "[/a][/coll3]" +
+             "[a=Обвинение]" + active.querySelector('.a_charge').value + "[/a]" +
+             "[coll3][a=Место совершения преступления]" + active.querySelector('.a_loc_crime').value + "[/a]|[a=Задерживающий офицер]" + active.querySelector('.a_off').value + "[/a]|[a=Серийный номер]" + active.querySelector('.a_ser').value + "[/a][/coll3][/doc_b]" +
+             "[doc_b=ДРУГИЕ ВОВЛЕЧЁННЫЕ ЛИЦА]" + pBB + "[/doc_b]" +
+             "[doc_b=Подробности инцидента, источник правонарушения и расследование][a]" + active.querySelector('.a_narr').value + "[/a][/doc_b]" +
+             "[doc_b=ИЗЪЯТОЕ ИМУЩЕСТВО][coll4]Количество|Тип|Модель|Разное, цвет, калибр[/coll4]" + prBB + "[/doc_b][/textarea]";
+    }
+
+    else if (type === 'TRAFFIC') {
+        subj = "[TC-" + cid + "] " + active.querySelector('.t_addr').value;
+        var p1n = active.querySelector('.t_p1_name').value || "Пусто"; var p2n = active.querySelector('.t_p2_name').value || "Пусто";
+        var p1l = active.querySelector('.t_p1_lic').value || "Пусто"; var p2l = active.querySelector('.t_p2_lic').value || "Пусто";
+        var p1c = active.querySelector('.t_p1_car').value || "Пусто"; var p2c = active.querySelector('.t_p2_car').value || "Пусто";
+        var p1p = active.querySelector('.t_p1_plate').value || "Пусто"; var p2p = active.querySelector('.t_p2_plate').value || "Пусто";
+        var p1i = active.querySelector('.t_p1_ins').value || "Пусто"; var p2i = active.querySelector('.t_p2_ins').value || "Пусто";
+
+        var cInj = active.querySelector('.t_inj').checked ? "[cbf][/cbf]" : "[cb][/cb]";
+        var cTow = active.querySelector('.t_tow').checked ? "[cbf][/cbf]" : "[cb][/cb]";
+        var cCit = active.querySelector('.t_cit').checked ? "[cbf][/cbf]" : "[cb][/cb]";
+
+        bb = "[textarea][coll][size=150][b]TRAFFIC COLLISION REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
+             "[doc_b=Информация об инциденте][coll3][a=Адрес, где произошёл инцидент]" + active.querySelector('.t_addr').value + "[/a]|[a=Дата, когда произошёл инцидент]" + active.querySelector('.t_date').value + "[/a]|[a=Время]" + active.querySelector('.t_time').value + "[/a][/coll3]" +
+             "[coll][a=Офицер, составивший репорт]" + active.querySelector('.t_off').value + "[/a]|[a=Серийный номер офицера]" + active.querySelector('.t_ser').value + "[/a][/coll][/doc_b]" +
+             "[doc_b=Детали инцидента][coll][b]Участник-1[/b]|[b]Участник-2[/b][/coll]" +
+             "[coll][a=Имя водителя]" + p1n + "[/a]|[a=Имя водителя]" + p2n + "[/a][/coll]" +
+             "[coll][a=Номер лицензии]" + p1l + "[/a]|[a=Номер лицензии]" + p2l + "[/a][/coll]" +
+             "[coll][a=Год выпуска, марка авто]" + p1c + "[/a]|[a=Год выпуска, марка авто]" + p2c + "[/a][/coll]" +
+             "[coll][a=Номер авто]" + p1p + "[/a]|[a=Номер авто]" + p2p + "[/a][/coll]" +
+             "[coll][a=Страховая компания]" + p1i + "[/a]|[a=Страховая компания]" + p2i + "[/a][/coll][/doc_b]" +
+             "[doc_b=Условия столкновения][coll3]Тип столкновения|Погодные условия|Дорожные условия[/coll3][coll3][a]" + active.querySelector('.t_type').value + "[/a]|[a]" + active.querySelector('.t_weather').value + "[/a]|[a]" + active.querySelector('.t_road').value + "[/a][/coll3][a=Подробности об инциденте]" + active.querySelector('.t_narr').value + "[/a][/doc_b]" +
+             "[doc_b=Заключительные причины столкновения]" + active.querySelector('.t_concl').value + "[/doc_b]" +
+             "[coll3]" + cInj + "Имеются пострадавшие [b]ДА[/b]|" + cTow + "Транспорт эвакуирован [b]ДА[/b]|" + cCit + "Выписаны штрафы [b]ДА[/b][/coll3][/textarea]";
+    }
+
+    else if (type === 'UOF') {
+        var r1 = getCheck(document.getElementById('u_res_1')) + " Неподчинение";
+        var r2 = getCheck(document.getElementById('u_res_2')) + " Пассивное сопротивление";
+        var r3 = getCheck(document.getElementById('u_res_3')) + " Активное сопротивление";
+        var r4 = getCheck(document.getElementById('u_res_4')) + " Нападение на офицера";
+        var r5 = getCheck(document.getElementById('u_res_5')) + " Угроза жизни";
+        var r6 = getCheck(document.getElementById('u_res_6')) + " Попытка побега";
+
+        var reasonsBB = "[coll3][a]" + r1 + "[/a]|[a]" + r2 + "[/a]|[a]" + r3 + "[/a][/coll3][coll3][a]" + r4 + "[/a]|[a]" + r5 + "[/a]|[a]" + r6 + "[/a][/coll3]";
+
+        var t1 = getCheck(document.getElementById('u_tool_1')) + " Физическая сила";
+        var t2 = getCheck(document.getElementById('u_tool_2')) + " Тазер";
+        var t3 = getCheck(document.getElementById('u_tool_3')) + " Дубинка";
+        var t4 = getCheck(document.getElementById('u_tool_4')) + " OC Spray";
+        var t5 = getCheck(document.getElementById('u_tool_5')) + " Beanbag";
+        var t6 = getCheck(document.getElementById('u_tool_6')) + " Огнестрельное";
+
+        var toolsBB = "[coll3][a]" + t1 + "[/a]|[a]" + t2 + "[/a]|[a]" + t3 + "[/a][/coll3][coll3][a]" + t4 + "[/a]|[a]" + t5 + "[/a]|[a]" + t6 + "[/a][/coll3]";
+
+        subj = "[UOF-" + cid + "] " + active.querySelector('.u_sub').value;
+        bb = "[textarea][coll][size=150][b]USE OF FORCE REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
+             "[doc_b=ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ][coll][a=Субъект]" + active.querySelector('.u_sub').value + "[/a]|[a=Тип инцидента]" + active.querySelector('.u_type').value + "[/a][/coll][/doc_b]" +
+             "[doc_b=ПРИЧИНА ПРИМЕНЕНИЯ СИЛЫ]" + reasonsBB + "[/doc_b]" +
+             "[doc_b=ИСПОЛЬЗОВАННЫЕ СРЕДСТВА]" + toolsBB + "[/doc_b]" +
+             "[doc_b=ПОДРОБНОСТИ (NARRATIVE)][a]" + active.querySelector('.u_narr').value + "[/a][/doc_b][/textarea]";
+    }
+
+    else if (type === 'COMPLAINT') {
+        subj = "[COMPLAINT-" + cid + "] " + active.querySelector('.c_name').value;
+        bb = "[textarea][coll][size=150][b]COMPLAINT FORM[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
+             "[doc_b=Информация о заявителе][coll][a=Имя, Фамилия]" + active.querySelector('.c_name').value + "[/a]|[a=Контактный телефон]" + active.querySelector('.c_phone').value + "[/a][/coll][coll][a=Адрес проживания]" + active.querySelector('.c_addr').value + "[/a]|[a=Дата рождения]" + active.querySelector('.c_dob').value + "[/a][/coll][/doc_b]" +
+             "[doc_b=Детали инцидента][a=Тип происшествия (Кража, нападение, вандализм)]" + active.querySelector('.c_type').value + "[/a][coll][a=Дата, когда произошло событие]" + active.querySelector('.c_date').value + "[/a]|[a=Место, где произошло событие]" + active.querySelector('.c_loc').value + "[/a][/coll][a=Детали события / Показания заявителя]" + active.querySelector('.c_narr').value + "[/a][coll][a=Вовлечённые лица (Жертвы, подозреваемые, свидетели)]" + active.querySelector('.c_pers').value + "[/a]|[a=Вовлечённое имущество (Украдено, повреждено, улики)]" + active.querySelector('.c_prop').value + "[/a][/coll][/doc_b][/textarea]";
+    }
+
+    else if (type === 'PROPERTY') {
+        var prCont = document.getElementById('list_props_full').children;
+        var listBB = "";
+        for (var i = 0; i < prCont.length; i++) listBB += "[coll4][a]" + prCont[i].querySelector('.p_qty').value + "[/a]|[a]" + prCont[i].querySelector('.p_name').value + "[/a]|[a]" + prCont[i].querySelector('.p_desc').value + "[/a]|[a]" + prCont[i].querySelector('.p_val').value + "[/a][/coll4]\n";
+
+        subj = "[PROP-" + cid + "] " + active.querySelector('.pr_own_name').value;
+        bb = "[textarea][coll][size=150][b]PROPERTY REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
+             "[doc_b=ВЛАДЕЛЕЦ][coll][a=Имя]" + active.querySelector('.pr_own_name').value + "[/a]|[a=Адрес]" + active.querySelector('.pr_addr').value + "[/a][/coll][a=Причина]" + active.querySelector('.pr_reason').value + "[/a][/doc_b]" +
+             "[doc_b=СПИСОК][coll4]Кол-во|Тип|Опис|Цена[/coll4]" + listBB + "[/doc_b][/textarea]";
+    }
+
+    else if (type === 'CCW') {
+        subj = "[CCW NOTICE] " + active.querySelector('.ccw_name').value;
+        bb = "[textarea][coll][size=150][b]NOTICE OF CCW SUSPENSION[/b][/size]|[a=Дата]" + active.querySelector('.ccw_date').value + "[/a][/coll][hr][/hr]" +
+             "[doc_b=ИНФОРМАЦИЯ О ЛИЦЕНЗИАТЕ][coll][a=Имя Фамилия]" + active.querySelector('.ccw_name').value + "[/a]|[a=Лицензия CCW #]" + active.querySelector('.ccw_num').value + "[/a][/coll][coll][a=Адрес]" + active.querySelector('.ccw_addr').value + "[/a]|[a=Телефон]" + active.querySelector('.ccw_phone').value + "[/a][/coll][/doc_b]" +
+             "[doc_b=ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ][coll3][a=CASE #]" + active.querySelector('.ccw_case').value + "[/a]|[a=Дата]" + active.querySelector('.ccw_date').value + "[/a]|[a=Офицер]" + active.querySelector('.ccw_off').value + "[/a][/coll3][/doc_b]" +
+             "[doc_b=ПРИЧИНА И ИЗЪЯТИЕ][a=Причина]" + active.querySelector('.ccw_reason').value + "[/a][a=Нарратив]" + active.querySelector('.ccw_narr').value + "[/a][coll3][a=Марка]" + active.querySelector('.ccw_make').value + "[/a]|[a=Модель]" + active.querySelector('.ccw_model').value + "[/a]|[a=Серийный номер]" + active.querySelector('.ccw_serial').value + "[/a][/coll3][/doc_b][/textarea]";
+    }
+
+    else if (type === 'INTERNAL') {
+        var aCont = document.getElementById('int_accused').children;
+        var aBB = "";
+        for (var i = 0; i < aCont.length; i++) aBB += "[coll4][a]" + aCont[i].querySelector('.ia_name').value + "[/a]|[a]" + aCont[i].querySelector('.ia_ser').value + "[/a]|[a]" + aCont[i].querySelector('.ia_rank').value + "[/a]|[a]" + aCont[i].querySelector('.ia_div').value + "[/a][/coll4]\n";
+
+        var wCont = document.getElementById('int_witness').children;
+        var wBB = "";
+        for (var i = 0; i < wCont.length; i++) wBB += "[coll3][a]" + wCont[i].querySelector('.iw_name').value + "[/a]|[a]" + wCont[i].querySelector('.iw_phone').value + "[/a]|[a]" + wCont[i].querySelector('.iw_addr').value + "[/a][/coll3]\n";
+
+        subj = "[IA-" + cid + "] Complaint";
+        bb = "[textarea][coll][size=150][b]INTERNAL COMPLAINT[/b][/size]|[a=CF No.]" + cid + "[/a][/coll][hr][/hr]" +
+             "[doc_b=ИНФОРМАЦИЯ О ЗАЯВИТЕЛЕ][coll][a=Имя]" + active.querySelector('.int_rp_name').value + "[/a]|[a=Телефон]" + active.querySelector('.int_rp_phone').value + "[/a][/coll][coll][a=Адрес]" + active.querySelector('.int_rp_addr').value + "[/a]|[a=DOB/ID]" + active.querySelector('.int_rp_id').value + "[/a][/coll][/doc_b]" +
+             "[doc_b=ИНЦИДЕНТ][coll3][a=Дата]" + active.querySelector('.int_date').value + "[/a]|[a=Время]" + active.querySelector('.int_time').value + "[/a]|[a=Локация]" + active.querySelector('.int_loc').value + "[/a][/coll3][/doc_b]" +
+             "[doc_b=ОБВИНЯЕМЫЕ СОТРУДНИКИ][coll4]Имя|Серийный|Звание|Дивизион[/coll4]" + aBB + "[/doc_b]" +
+             "[doc_b=СВИДЕТЕЛИ][coll3]Имя|Телефон|Адрес[/coll3]" + wBB + "[/doc_b]" +
+             "[doc_b=СУТЬ ЖАЛОБЫ][a=Характер]" + active.querySelector('.int_allegation').value + "[/a][a=Описание]" + active.querySelector('.int_narr').value + "[/a][/doc_b][/textarea]";
+    }
+
+    document.getElementById('outTitle').value = subj;
+    document.getElementById('outBB').value = bb;
+    var rb = document.getElementById('resultBlock');
+    rb.style.display = 'block';
+    rb.scrollIntoView({ behavior: 'smooth' });
+};
+</script>
+
+</body>
+</html>
