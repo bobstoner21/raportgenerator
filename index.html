@@ -271,7 +271,7 @@
                     <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Неосторожное вождение"> Неосторожное вождение</label>
                     <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Публичный протест"> Публичный протест</label>
                     <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Трафик-стоп"> Трафик-стоп</label>
-                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Вызов врача по запросу офицера"> Вызов врача по запросу офицера</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Вызов врача по запросу офицера/помощника"> Вызов врача по запросу офицера/помощника</label>
                     <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Сопровождение транспорта"> Сопровождение транспорта</label>
                     <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Пешее преследование"> Пешее преследование</label>
                     <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Больной человек"> Больной человек</label>
@@ -300,7 +300,7 @@
         <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input i_mo" style="height:80px" placeholder="Метод совершения преступления"></textarea></div></div>
         <div class="doc-b-header">ХРОНОЛОГИЧЕСКИЙ ОТЧЕТ</div>
         <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input i_narr" style="height:250px" placeholder="Подробное описание ситуации"></textarea></div></div>
-        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ОФИЦЕРЕ</div>
+        <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ОФИЦЕРЕ/ПОМОЩНИКЕ</div>
         <div class="doc-b-content">
             <div class="grid-2"><div class="field-wrapper"><div class="field-label">ИМЯ ОФИЦЕРА/ПОМОЩНИКА</div><input type="text" class="field-input i_off"></div><div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input i_ser"></div></div>
         </div>
@@ -342,7 +342,7 @@
             <div class="field-wrapper"><div class="field-label">ОБВИНЕНИЕ</div><input type="text" class="field-input a_charge"></div>
             <div class="grid-3">
                 <div class="field-wrapper"><div class="field-label">МЕСТО СОВЕРШЕНИЯ</div><input type="text" class="field-input a_loc_crime"></div>
-                <div class="field-wrapper"><div class="field-label">ЗАДЕРЖИВАЮЩИЙ ОФИЦЕР</div><input type="text" class="field-input a_off"></div>
+                <div class="field-wrapper"><div class="field-label">ЗАДЕРЖИВАЮЩИЙ ОФИЦЕР/ПОМОЩНИК</div><input type="text" class="field-input a_off"></div>
                 <div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input a_ser"></div>
             </div>
         </div>
@@ -365,7 +365,7 @@
                  <div class="field-wrapper"><div class="field-label">ВРЕМЯ</div><input type="time" class="field-input t_time"></div>
             </div>
             <div class="grid-2">
-                 <div class="field-wrapper"><div class="field-label">ОФИЦЕР, СОСТАВИВШИЙ РЕПОРТ</div><input type="text" class="field-input t_off"></div>
+                 <div class="field-wrapper"><div class="field-label">ОФИЦЕР/ПОМОЩНИК, СОСТАВИВШИЙ РЕПОРТ</div><input type="text" class="field-input t_off"></div>
                  <div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input t_ser"></div>
             </div>
         </div>
@@ -427,11 +427,11 @@
              </div>
         </div>
 
-        <div class="doc-b-header">ОФИЦЕР, СОСТАВИВШИЙ ОТЧЁТ</div>
+        <div class="doc-b-header">ОФИЦЕР/ПОМОЩНИК, СОСТАВИВШИЙ ОТЧЁТ</div>
         <div class="doc-b-content">
              <div class="grid-2">
-                <div class="field-wrapper"><div class="field-label">ИМЯ ОФИЦЕРА/ПОМОЩНИКА</div><input type="text" class="field-input u_officer" placeholder="Заполняется из данных офицера"></div>
-                <div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input u_officer_serial" placeholder="Заполняется из данных офицера"></div>
+                <div class="field-wrapper"><div class="field-label">ИМЯ ОФИЦЕРА/ПОМОЩНИКА</div><input type="text" class="field-input u_officer" placeholder="Заполняется из данных офицера/помощника"></div>
+                <div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input u_officer_serial" placeholder="Заполняется из данных офицера/помощника"></div>
              </div>
         </div>
 
@@ -513,7 +513,7 @@
         </div>
         <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ</div>
         <div class="doc-b-content">
-             <div class="grid-3"><div class="field-wrapper"><div class="field-label">КЕЙС/ИНЦИДЕНТ #</div><input type="text" class="field-input ccw_case"></div><div class="field-wrapper"><div class="field-label">ДАТА</div><input type="date" class="field-input ccw_date"></div><div class="field-wrapper"><div class="field-label">ОФИЦЕР</div><input type="text" class="field-input ccw_off"></div></div>
+             <div class="grid-3"><div class="field-wrapper"><div class="field-label">КЕЙС/ИНЦИДЕНТ #</div><input type="text" class="field-input ccw_case"></div><div class="field-wrapper"><div class="field-label">ДАТА</div><input type="date" class="field-input ccw_date"></div><div class="field-wrapper"><div class="field-label">ОФИЦЕР/ПОМОЩНИК</div><input type="text" class="field-input ccw_off"></div></div>
         </div>
         <div class="doc-b-header">ПРИЧИНА И ИЗЪЯТИЕ</div>
         <div class="doc-b-content">
@@ -979,7 +979,7 @@ document.getElementById('submitBtn').onclick = function () {
 
              narrativeBlock('Хронологический отчёт', active.querySelector('.i_narr').value) + hr() +
 
-             sectionHeader('Информация об офицере') +
+             sectionHeader('Информация об офицере/помощнике') +
              fieldGrid([
                  ['Имя офицера/помощника', active.querySelector('.i_off').value],
                  ['Серийный номер', active.querySelector('.i_ser').value]
@@ -1037,7 +1037,7 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Время задержания', active.querySelector('.a_time_arr').value],
                  ['Обвинение', active.querySelector('.a_charge').value],
                  ['Место совершения преступления', active.querySelector('.a_loc_crime').value],
-                 ['Задерживающий офицер', active.querySelector('.a_off').value],
+                 ['Задерживающий офицер/помощник', active.querySelector('.a_off').value],
                  ['Серийный номер', active.querySelector('.a_ser').value]
              ], 3) + hr() +
 
@@ -1067,7 +1067,7 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Адрес, где произошёл инцидент', active.querySelector('.t_addr').value],
                  ['Дата', active.querySelector('.t_date').value],
                  ['Время', active.querySelector('.t_time').value],
-                 ['Офицер, составивший репорт', active.querySelector('.t_off').value],
+                 ['Офицер/помощник, составивший репорт', active.querySelector('.t_off').value],
                  ['Серийный номер', active.querySelector('.t_ser').value]
              ], 3) + hr() +
 
@@ -1126,7 +1126,7 @@ document.getElementById('submitBtn').onclick = function () {
         var uofOfficerSerial = officerSerialInput.value || '';
 
         bb = reportHeader('USE OF FORCE REPORT', cid) +
-             sectionHeader('Офицер, составивший отчёт') +
+             sectionHeader('Офицер/помощник, составивший отчёт') +
              fieldGrid([
                  ['Имя офицера/помощника', uofOfficer],
                  ['Серийный номер', uofOfficerSerial]
@@ -1219,7 +1219,7 @@ document.getElementById('submitBtn').onclick = function () {
              fieldGrid([
                  ['Кейс / инцидент #', active.querySelector('.ccw_case').value],
                  ['Дата', active.querySelector('.ccw_date').value],
-                 ['Офицер', active.querySelector('.ccw_off').value]
+                 ['Офицер/помощник', active.querySelector('.ccw_off').value]
              ], 3) + hr() +
 
              sectionHeader('Причина и изъятие') +
