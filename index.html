@@ -508,7 +508,7 @@
             <textarea id="outBB" readonly></textarea>
             <button type="button" class="copy-btn" onclick="copyField('outBB', this)">Копировать</button>
         </div>
-        <div class="result-hint">Теги вида [coll], [a], [doc_b], [textarea] и т.д. — это кастомные BBCode-теги. Они отобразятся корректно только на форуме, где такие теги уже настроены (как было на исходном phpBB). Если на вашем XenForo эти теги ещё не добавлены, их нужно предварительно создать через ACP → BB Codes.</div>
+        <div class="result-hint">Используются только стандартные BBCode-теги XenForo ([SIZE], [B], [HR], [TABLE]/[TR]/[TH]/[TD], [CENTER]) — никакой донастройки в ACP не требуется, можно сразу вставлять в форму создания темы.</div>
     </div>
 </div>
 
@@ -525,7 +525,6 @@ function setTab(name, evt) {
 }
 
 function removeRow(btn) { btn.parentNode.parentNode.removeChild(btn.parentNode); }
-function getCheck(el) { return (el && el.checked) ? '[cbf][/cbf]' : '[cb][/cb]'; }
 
 function addDynamicRow(containerId, htmlContent) {
     var div = document.createElement('div');
@@ -624,6 +623,54 @@ function copyField(id, btn) {
     }
 }
 
+// =====================================================================
+// ---------- BBCode helpers (ТОЛЬКО стандартные теги XenForo) ----------
+// =====================================================================
+
+function v(val) { return (val && val.toString().trim()) ? val.toString().trim() : '—'; }
+
+// Заголовок секции — жирный, чуть крупнее, на тёмной "плашке" через COLOR/BACKGROUND не всегда доступны,
+// поэтому используем SIZE+B+подчёркивающую линию из символов, это гарантированно работает без ACP-настроек.
+function sectionHeader(text) {
+    return '[SIZE=4][B]' + text + '[/B][/SIZE]\n';
+}
+
+function fieldLine(label, value) {
+    return '[B]' + label + ':[/B] ' + v(value) + '\n';
+}
+
+// Таблица: headers — массив строк, rows — массив массивов строк
+function bbTable(headers, rows) {
+    var s = '[TABLE]\n[TR]\n';
+    headers.forEach(function (h) {
+        s += '[TH][CENTER]' + h + '[/CENTER][/TH]\n';
+    });
+    s += '[/TR]\n';
+    if (rows.length === 0) {
+        s += '[TR]\n[TD][CENTER]—[/CENTER][/TD]' + '[TD][/TD]'.repeat(Math.max(headers.length - 1, 0)) + '\n[/TR]\n';
+    } else {
+        rows.forEach(function (r) {
+            s += '[TR]\n';
+            r.forEach(function (c) {
+                s += '[TD]' + v(c) + '[/TD]\n';
+            });
+            s += '[/TR]\n';
+        });
+    }
+    s += '[/TABLE]\n';
+    return s;
+}
+
+function reportHeader(title, cid) {
+    return '[CENTER][SIZE=6][B]' + title + '[/B][/SIZE][/CENTER]\n' +
+           '[CENTER][B]Номер дела:[/B] ' + cid + '[/CENTER]\n' +
+           '[HR]\n\n';
+}
+
+function checkMark(el) {
+    return (el && el.checked) ? '[B][X][/B]' : '[ ]';
+}
+
 // ---------- generation ----------
 document.getElementById('submitBtn').onclick = function () {
     applyOfficerDefaults();
@@ -636,145 +683,268 @@ document.getElementById('submitBtn').onclick = function () {
 
     if (type === 'INCIDENT') {
         var pCont = document.getElementById('inc_persons').children;
-        var pBB = "";
+        var pRows = [];
         for (var i = 0; i < pCont.length; i++) {
-            pBB += "[coll6][a]" + pCont[i].querySelector('.ip_type').value + "[/a]|[a]" + pCont[i].querySelector('.ip_name').value + "[/a]|[a]" + pCont[i].querySelector('.ip_dob').value + "[/a]|[a]" + pCont[i].querySelector('.ip_sex').value + "[/a]|[a]" + pCont[i].querySelector('.ip_race').value + "[/a]|[a]" + pCont[i].querySelector('.ip_phone').value + "[/a][/coll6]\n";
+            pRows.push([
+                pCont[i].querySelector('.ip_type').value,
+                pCont[i].querySelector('.ip_name').value,
+                pCont[i].querySelector('.ip_dob').value,
+                pCont[i].querySelector('.ip_sex').value,
+                pCont[i].querySelector('.ip_race').value,
+                pCont[i].querySelector('.ip_phone').value
+            ]);
         }
 
         var prCont = document.getElementById('inc_props').children;
-        var prBB = "";
+        var prRows = [];
         for (var i = 0; i < prCont.length; i++) {
-            prBB += "[coll4][a]" + prCont[i].querySelector('.ipr_stat').value + "[/a]|[a]" + prCont[i].querySelector('.ipr_name').value + "[/a]|[a]" + prCont[i].querySelector('.ipr_desc').value + "[/a]|[a]" + prCont[i].querySelector('.ipr_val').value + "[/a][/coll4]\n";
+            prRows.push([
+                prCont[i].querySelector('.ipr_stat').value,
+                prCont[i].querySelector('.ipr_name').value,
+                prCont[i].querySelector('.ipr_desc').value,
+                prCont[i].querySelector('.ipr_val').value
+            ]);
         }
 
-        subj = "[INCIDENT-" + cid + "] " + active.querySelector('.i_type').value;
-        bb = "[textarea][coll][size=150][b]INCIDENT REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
-             "[doc_b=Информация об инциденте][coll4][a=Дата составления]" + active.querySelector('.i_date_cre').value + "[/a]|[a=Время составления]" + active.querySelector('.i_time_cre').value + "[/a]|[a=Дата инцидента]" + active.querySelector('.i_date_inc').value + "[/a]|[a=Время инцидента]" + active.querySelector('.i_time_inc').value + "[/a][/coll4]" +
-             "[a=Место инцидента]" + active.querySelector('.i_loc').value + "[/a][a=Тип инцидента]" + active.querySelector('.i_type').value + "[/a][/doc_b]" +
-             "[doc_b=Вовлечённые лица][coll6]Тип|Имя|Дата рождения|Пол|Раса|Тел[/coll6]" + pBB + "[/doc_b]" +
-             "[doc_b=Вовлечённое имущество][coll4]Статус|Наименование|Описание|Стоимость[/coll4]" + prBB + "[/doc_b]" +
-             "[doc_b=MODUS OPERANDI][a]" + active.querySelector('.i_mo').value + "[/a][/doc_b]" +
-             "[doc_b=Хронологический отчет][a]" + active.querySelector('.i_narr').value + "[/a][/doc_b]" +
-             "[doc_b=Информация об офицере][coll][a=Имя офицера]" + active.querySelector('.i_off').value + "[/a]|[a=Серийный номер]" + active.querySelector('.i_ser').value + "[/a][/coll][/doc_b][/textarea]";
+        subj = "[INCIDENT-" + cid + "] " + v(active.querySelector('.i_type').value);
+        bb = reportHeader('INCIDENT REPORT', cid) +
+             sectionHeader('Информация об инциденте') +
+             fieldLine('Дата составления', active.querySelector('.i_date_cre').value) +
+             fieldLine('Время составления', active.querySelector('.i_time_cre').value) +
+             fieldLine('Дата инцидента', active.querySelector('.i_date_inc').value) +
+             fieldLine('Время инцидента', active.querySelector('.i_time_inc').value) +
+             fieldLine('Место инцидента', active.querySelector('.i_loc').value) +
+             fieldLine('Тип инцидента', active.querySelector('.i_type').value) + '\n' +
+             sectionHeader('Вовлечённые лица') +
+             bbTable(['Тип', 'Имя', 'Дата рождения', 'Пол', 'Раса', 'Тел'], pRows) + '\n' +
+             sectionHeader('Вовлечённое имущество') +
+             bbTable(['Статус', 'Наименование', 'Описание', 'Стоимость'], prRows) + '\n' +
+             sectionHeader('Modus Operandi') +
+             v(active.querySelector('.i_mo').value) + '\n\n' +
+             sectionHeader('Хронологический отчёт') +
+             v(active.querySelector('.i_narr').value) + '\n\n' +
+             sectionHeader('Информация об офицере') +
+             fieldLine('Имя офицера', active.querySelector('.i_off').value) +
+             fieldLine('Серийный номер', active.querySelector('.i_ser').value);
     }
 
     else if (type === 'ARREST') {
         var pCont = document.getElementById('arr_persons').children;
-        var pBB = "";
-        for (var i = 0; i < pCont.length; i++) pBB += "[coll][a=Имя другого вовлечённого лица]" + pCont[i].querySelector('.ap_name').value + "[/a]|[a=Детали (пол, цвет кожи, дата рождения)]" + pCont[i].querySelector('.ap_det').value + "[/a][/coll]\n";
+        var pRows = [];
+        for (var i = 0; i < pCont.length; i++) {
+            pRows.push([pCont[i].querySelector('.ap_name').value, pCont[i].querySelector('.ap_det').value]);
+        }
 
         var prCont = document.getElementById('arr_props').children;
-        var prBB = "";
-        for (var i = 0; i < prCont.length; i++) prBB += "[coll4][a]" + prCont[i].querySelector('.apr_qty').value + "[/a]|[a]" + prCont[i].querySelector('.apr_type').value + "[/a]|[a]" + prCont[i].querySelector('.apr_mod').value + "[/a]|[a]" + prCont[i].querySelector('.apr_desc').value + "[/a][/coll4]\n";
+        var prRows = [];
+        for (var i = 0; i < prCont.length; i++) {
+            prRows.push([
+                prCont[i].querySelector('.apr_qty').value,
+                prCont[i].querySelector('.apr_type').value,
+                prCont[i].querySelector('.apr_mod').value,
+                prCont[i].querySelector('.apr_desc').value
+            ]);
+        }
 
-        subj = "[ARREST-" + cid + "] " + active.querySelector('.a_name').value + " " + active.querySelector('.a_sur').value;
-        bb = "[textarea][coll][size=150][b]ARREST REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
-             "[doc_b=СВЕДЕНИЯ ОБ АРЕСТОВАННОМ][coll4][a=Имя]" + active.querySelector('.a_name').value + "[/a]|[a=Фамилия]" + active.querySelector('.a_sur').value + "[/a]|[a=Второе имя]" + active.querySelector('.a_mid').value + "[/a]|[a=Прозвище]" + active.querySelector('.a_alias').value + "[/a][/coll4]" +
-             "[coll6][a=Пол]" + active.querySelector('.a_sex').value + "[/a]|[a=Национальность]" + active.querySelector('.a_nat').value + "[/a]|[a=Цвет волос]" + active.querySelector('.a_hair').value + "[/a]|[a=Цвет глаз]" + active.querySelector('.a_eyes').value + "[/a]|[a=Рост]" + active.querySelector('.a_hgt').value + "[/a]|[a=Вес]" + active.querySelector('.a_wgt').value + "[/a][/coll6]" +
-             "[coll3][a=Дата рождения]" + active.querySelector('.a_dob').value + "[/a]|[a=Возраст]" + active.querySelector('.a_age').value + "[/a]|[a=Место содержания]" + active.querySelector('.a_jail').value + "[/a][/coll3][/doc_b]" +
-             "[doc_b=СВЕДЕНИЯ ОБ АРЕСТЕ][coll3][a=Место задержания]" + active.querySelector('.a_loc_arr').value + "[/a]|[a=Дата задержания]" + active.querySelector('.a_date_arr').value + "[/a]|[a=Время задержания]" + active.querySelector('.a_time_arr').value + "[/a][/coll3]" +
-             "[a=Обвинение]" + active.querySelector('.a_charge').value + "[/a]" +
-             "[coll3][a=Место совершения преступления]" + active.querySelector('.a_loc_crime').value + "[/a]|[a=Задерживающий офицер]" + active.querySelector('.a_off').value + "[/a]|[a=Серийный номер]" + active.querySelector('.a_ser').value + "[/a][/coll3][/doc_b]" +
-             "[doc_b=ДРУГИЕ ВОВЛЕЧЁННЫЕ ЛИЦА]" + pBB + "[/doc_b]" +
-             "[doc_b=Подробности инцидента, источник правонарушения и расследование][a]" + active.querySelector('.a_narr').value + "[/a][/doc_b]" +
-             "[doc_b=ИЗЪЯТОЕ ИМУЩЕСТВО][coll4]Количество|Тип|Модель|Разное, цвет, калибр[/coll4]" + prBB + "[/doc_b][/textarea]";
+        subj = "[ARREST-" + cid + "] " + v(active.querySelector('.a_name').value) + " " + v(active.querySelector('.a_sur').value);
+        bb = reportHeader('ARREST REPORT', cid) +
+             sectionHeader('Сведения об арестованном') +
+             fieldLine('Имя', active.querySelector('.a_name').value) +
+             fieldLine('Фамилия', active.querySelector('.a_sur').value) +
+             fieldLine('Второе имя', active.querySelector('.a_mid').value) +
+             fieldLine('Прозвище', active.querySelector('.a_alias').value) +
+             fieldLine('Пол', active.querySelector('.a_sex').value) +
+             fieldLine('Национальность', active.querySelector('.a_nat').value) +
+             fieldLine('Цвет волос', active.querySelector('.a_hair').value) +
+             fieldLine('Цвет глаз', active.querySelector('.a_eyes').value) +
+             fieldLine('Рост', active.querySelector('.a_hgt').value) +
+             fieldLine('Вес', active.querySelector('.a_wgt').value) +
+             fieldLine('Дата рождения', active.querySelector('.a_dob').value) +
+             fieldLine('Возраст', active.querySelector('.a_age').value) +
+             fieldLine('Место содержания', active.querySelector('.a_jail').value) + '\n' +
+             sectionHeader('Сведения об аресте') +
+             fieldLine('Место задержания', active.querySelector('.a_loc_arr').value) +
+             fieldLine('Дата задержания', active.querySelector('.a_date_arr').value) +
+             fieldLine('Время задержания', active.querySelector('.a_time_arr').value) +
+             fieldLine('Обвинение', active.querySelector('.a_charge').value) +
+             fieldLine('Место совершения преступления', active.querySelector('.a_loc_crime').value) +
+             fieldLine('Задерживающий офицер', active.querySelector('.a_off').value) +
+             fieldLine('Серийный номер', active.querySelector('.a_ser').value) + '\n' +
+             sectionHeader('Другие вовлечённые лица') +
+             bbTable(['Имя', 'Детали (пол, раса, дата рождения)'], pRows) + '\n' +
+             sectionHeader('Подробности инцидента') +
+             v(active.querySelector('.a_narr').value) + '\n\n' +
+             sectionHeader('Изъятое имущество') +
+             bbTable(['Кол-во', 'Тип', 'Модель', 'Разное, цвет, калибр'], prRows);
     }
 
     else if (type === 'TRAFFIC') {
-        subj = "[TC-" + cid + "] " + active.querySelector('.t_addr').value;
-        var p1n = active.querySelector('.t_p1_name').value || "Пусто"; var p2n = active.querySelector('.t_p2_name').value || "Пусто";
-        var p1l = active.querySelector('.t_p1_lic').value || "Пусто"; var p2l = active.querySelector('.t_p2_lic').value || "Пусто";
-        var p1c = active.querySelector('.t_p1_car').value || "Пусто"; var p2c = active.querySelector('.t_p2_car').value || "Пусто";
-        var p1p = active.querySelector('.t_p1_plate').value || "Пусто"; var p2p = active.querySelector('.t_p2_plate').value || "Пусто";
-        var p1i = active.querySelector('.t_p1_ins').value || "Пусто"; var p2i = active.querySelector('.t_p2_ins').value || "Пусто";
+        subj = "[TC-" + cid + "] " + v(active.querySelector('.t_addr').value);
 
-        var cInj = active.querySelector('.t_inj').checked ? "[cbf][/cbf]" : "[cb][/cb]";
-        var cTow = active.querySelector('.t_tow').checked ? "[cbf][/cbf]" : "[cb][/cb]";
-        var cCit = active.querySelector('.t_cit').checked ? "[cbf][/cbf]" : "[cb][/cb]";
-
-        bb = "[textarea][coll][size=150][b]TRAFFIC COLLISION REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
-             "[doc_b=Информация об инциденте][coll3][a=Адрес, где произошёл инцидент]" + active.querySelector('.t_addr').value + "[/a]|[a=Дата, когда произошёл инцидент]" + active.querySelector('.t_date').value + "[/a]|[a=Время]" + active.querySelector('.t_time').value + "[/a][/coll3]" +
-             "[coll][a=Офицер, составивший репорт]" + active.querySelector('.t_off').value + "[/a]|[a=Серийный номер офицера]" + active.querySelector('.t_ser').value + "[/a][/coll][/doc_b]" +
-             "[doc_b=Детали инцидента][coll][b]Участник-1[/b]|[b]Участник-2[/b][/coll]" +
-             "[coll][a=Имя водителя]" + p1n + "[/a]|[a=Имя водителя]" + p2n + "[/a][/coll]" +
-             "[coll][a=Номер лицензии]" + p1l + "[/a]|[a=Номер лицензии]" + p2l + "[/a][/coll]" +
-             "[coll][a=Год выпуска, марка авто]" + p1c + "[/a]|[a=Год выпуска, марка авто]" + p2c + "[/a][/coll]" +
-             "[coll][a=Номер авто]" + p1p + "[/a]|[a=Номер авто]" + p2p + "[/a][/coll]" +
-             "[coll][a=Страховая компания]" + p1i + "[/a]|[a=Страховая компания]" + p2i + "[/a][/coll][/doc_b]" +
-             "[doc_b=Условия столкновения][coll3]Тип столкновения|Погодные условия|Дорожные условия[/coll3][coll3][a]" + active.querySelector('.t_type').value + "[/a]|[a]" + active.querySelector('.t_weather').value + "[/a]|[a]" + active.querySelector('.t_road').value + "[/a][/coll3][a=Подробности об инциденте]" + active.querySelector('.t_narr').value + "[/a][/doc_b]" +
-             "[doc_b=Заключительные причины столкновения]" + active.querySelector('.t_concl').value + "[/doc_b]" +
-             "[coll3]" + cInj + "Имеются пострадавшие [b]ДА[/b]|" + cTow + "Транспорт эвакуирован [b]ДА[/b]|" + cCit + "Выписаны штрафы [b]ДА[/b][/coll3][/textarea]";
+        bb = reportHeader('TRAFFIC COLLISION REPORT', cid) +
+             sectionHeader('Информация об инциденте') +
+             fieldLine('Адрес', active.querySelector('.t_addr').value) +
+             fieldLine('Дата', active.querySelector('.t_date').value) +
+             fieldLine('Время', active.querySelector('.t_time').value) +
+             fieldLine('Офицер, составивший репорт', active.querySelector('.t_off').value) +
+             fieldLine('Серийный номер офицера', active.querySelector('.t_ser').value) + '\n' +
+             sectionHeader('Детали инцидента (участники)') +
+             bbTable(
+                ['', 'Участник-1', 'Участник-2'],
+                [
+                    ['Имя водителя', active.querySelector('.t_p1_name').value, active.querySelector('.t_p2_name').value],
+                    ['Номер лицензии', active.querySelector('.t_p1_lic').value, active.querySelector('.t_p2_lic').value],
+                    ['Год выпуска, марка авто', active.querySelector('.t_p1_car').value, active.querySelector('.t_p2_car').value],
+                    ['Номер авто', active.querySelector('.t_p1_plate').value, active.querySelector('.t_p2_plate').value],
+                    ['Страховая компания', active.querySelector('.t_p1_ins').value, active.querySelector('.t_p2_ins').value]
+                ]
+             ) + '\n' +
+             sectionHeader('Условия столкновения') +
+             fieldLine('Тип столкновения', active.querySelector('.t_type').value) +
+             fieldLine('Погодные условия', active.querySelector('.t_weather').value) +
+             fieldLine('Дорожные условия', active.querySelector('.t_road').value) +
+             fieldLine('Подробности об инциденте', active.querySelector('.t_narr').value) + '\n' +
+             sectionHeader('Заключительные причины столкновения') +
+             v(active.querySelector('.t_concl').value) + '\n\n' +
+             sectionHeader('Дополнительно') +
+             checkMark(active.querySelector('.t_inj')) + ' Имеются пострадавшие\n' +
+             checkMark(active.querySelector('.t_tow')) + ' Транспорт эвакуирован\n' +
+             checkMark(active.querySelector('.t_cit')) + ' Выписаны штрафы\n';
     }
 
     else if (type === 'UOF') {
-        var r1 = getCheck(document.getElementById('u_res_1')) + " Неподчинение";
-        var r2 = getCheck(document.getElementById('u_res_2')) + " Пассивное сопротивление";
-        var r3 = getCheck(document.getElementById('u_res_3')) + " Активное сопротивление";
-        var r4 = getCheck(document.getElementById('u_res_4')) + " Нападение на офицера";
-        var r5 = getCheck(document.getElementById('u_res_5')) + " Угроза жизни";
-        var r6 = getCheck(document.getElementById('u_res_6')) + " Попытка побега";
+        var reasonEls = [
+            [document.getElementById('u_res_1'), 'Неподчинение'],
+            [document.getElementById('u_res_2'), 'Пассивное сопротивление'],
+            [document.getElementById('u_res_3'), 'Активное сопротивление'],
+            [document.getElementById('u_res_4'), 'Нападение на офицера'],
+            [document.getElementById('u_res_5'), 'Угроза жизни'],
+            [document.getElementById('u_res_6'), 'Попытка побега']
+        ];
+        var toolEls = [
+            [document.getElementById('u_tool_1'), 'Физическая сила'],
+            [document.getElementById('u_tool_2'), 'Тазер'],
+            [document.getElementById('u_tool_3'), 'Дубинка'],
+            [document.getElementById('u_tool_4'), 'Перцовый баллон'],
+            [document.getElementById('u_tool_5'), 'Beanbag (Less-Lethal)'],
+            [document.getElementById('u_tool_6'), 'Огнестрельное']
+        ];
 
-        var reasonsBB = "[coll3][a]" + r1 + "[/a]|[a]" + r2 + "[/a]|[a]" + r3 + "[/a][/coll3][coll3][a]" + r4 + "[/a]|[a]" + r5 + "[/a]|[a]" + r6 + "[/a][/coll3]";
+        var reasonsBB = '';
+        reasonEls.forEach(function (r) { reasonsBB += checkMark(r[0]) + ' ' + r[1] + '\n'; });
+        var toolsBB = '';
+        toolEls.forEach(function (t) { toolsBB += checkMark(t[0]) + ' ' + t[1] + '\n'; });
 
-        var t1 = getCheck(document.getElementById('u_tool_1')) + " Физическая сила";
-        var t2 = getCheck(document.getElementById('u_tool_2')) + " Тазер";
-        var t3 = getCheck(document.getElementById('u_tool_3')) + " Дубинка";
-        var t4 = getCheck(document.getElementById('u_tool_4')) + " OC Spray";
-        var t5 = getCheck(document.getElementById('u_tool_5')) + " Beanbag";
-        var t6 = getCheck(document.getElementById('u_tool_6')) + " Огнестрельное";
-
-        var toolsBB = "[coll3][a]" + t1 + "[/a]|[a]" + t2 + "[/a]|[a]" + t3 + "[/a][/coll3][coll3][a]" + t4 + "[/a]|[a]" + t5 + "[/a]|[a]" + t6 + "[/a][/coll3]";
-
-        subj = "[UOF-" + cid + "] " + active.querySelector('.u_sub').value;
-        bb = "[textarea][coll][size=150][b]USE OF FORCE REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
-             "[doc_b=ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ][coll][a=Субъект]" + active.querySelector('.u_sub').value + "[/a]|[a=Тип инцидента]" + active.querySelector('.u_type').value + "[/a][/coll][/doc_b]" +
-             "[doc_b=ПРИЧИНА ПРИМЕНЕНИЯ СИЛЫ]" + reasonsBB + "[/doc_b]" +
-             "[doc_b=ИСПОЛЬЗОВАННЫЕ СРЕДСТВА]" + toolsBB + "[/doc_b]" +
-             "[doc_b=ПОДРОБНОСТИ (NARRATIVE)][a]" + active.querySelector('.u_narr').value + "[/a][/doc_b][/textarea]";
+        subj = "[UOF-" + cid + "] " + v(active.querySelector('.u_sub').value);
+        bb = reportHeader('USE OF FORCE REPORT', cid) +
+             sectionHeader('Информация об инциденте') +
+             fieldLine('Субъект', active.querySelector('.u_sub').value) +
+             fieldLine('Тип инцидента', active.querySelector('.u_type').value) + '\n' +
+             sectionHeader('Причина применения силы') + reasonsBB + '\n' +
+             sectionHeader('Использованные средства') + toolsBB + '\n' +
+             sectionHeader('Подробности (narrative)') +
+             v(active.querySelector('.u_narr').value);
     }
 
     else if (type === 'COMPLAINT') {
-        subj = "[COMPLAINT-" + cid + "] " + active.querySelector('.c_name').value;
-        bb = "[textarea][coll][size=150][b]COMPLAINT FORM[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
-             "[doc_b=Информация о заявителе][coll][a=Имя, Фамилия]" + active.querySelector('.c_name').value + "[/a]|[a=Контактный телефон]" + active.querySelector('.c_phone').value + "[/a][/coll][coll][a=Адрес проживания]" + active.querySelector('.c_addr').value + "[/a]|[a=Дата рождения]" + active.querySelector('.c_dob').value + "[/a][/coll][/doc_b]" +
-             "[doc_b=Детали инцидента][a=Тип происшествия (Кража, нападение, вандализм)]" + active.querySelector('.c_type').value + "[/a][coll][a=Дата, когда произошло событие]" + active.querySelector('.c_date').value + "[/a]|[a=Место, где произошло событие]" + active.querySelector('.c_loc').value + "[/a][/coll][a=Детали события / Показания заявителя]" + active.querySelector('.c_narr').value + "[/a][coll][a=Вовлечённые лица (Жертвы, подозреваемые, свидетели)]" + active.querySelector('.c_pers').value + "[/a]|[a=Вовлечённое имущество (Украдено, повреждено, улики)]" + active.querySelector('.c_prop').value + "[/a][/coll][/doc_b][/textarea]";
+        subj = "[COMPLAINT-" + cid + "] " + v(active.querySelector('.c_name').value);
+        bb = reportHeader('COMPLAINT FORM', cid) +
+             sectionHeader('Информация о заявителе') +
+             fieldLine('Имя, фамилия', active.querySelector('.c_name').value) +
+             fieldLine('Контактный телефон', active.querySelector('.c_phone').value) +
+             fieldLine('Адрес проживания', active.querySelector('.c_addr').value) +
+             fieldLine('Дата рождения', active.querySelector('.c_dob').value) + '\n' +
+             sectionHeader('Детали инцидента') +
+             fieldLine('Тип происшествия', active.querySelector('.c_type').value) +
+             fieldLine('Дата', active.querySelector('.c_date').value) +
+             fieldLine('Место', active.querySelector('.c_loc').value) +
+             fieldLine('Детали / показания заявителя', active.querySelector('.c_narr').value) +
+             fieldLine('Вовлечённые лица', active.querySelector('.c_pers').value) +
+             fieldLine('Вовлечённое имущество', active.querySelector('.c_prop').value);
     }
 
     else if (type === 'PROPERTY') {
         var prCont = document.getElementById('list_props_full').children;
-        var listBB = "";
-        for (var i = 0; i < prCont.length; i++) listBB += "[coll4][a]" + prCont[i].querySelector('.p_qty').value + "[/a]|[a]" + prCont[i].querySelector('.p_name').value + "[/a]|[a]" + prCont[i].querySelector('.p_desc').value + "[/a]|[a]" + prCont[i].querySelector('.p_val').value + "[/a][/coll4]\n";
+        var listRows = [];
+        for (var i = 0; i < prCont.length; i++) {
+            listRows.push([
+                prCont[i].querySelector('.p_qty').value,
+                prCont[i].querySelector('.p_name').value,
+                prCont[i].querySelector('.p_desc').value,
+                prCont[i].querySelector('.p_val').value
+            ]);
+        }
 
-        subj = "[PROP-" + cid + "] " + active.querySelector('.pr_own_name').value;
-        bb = "[textarea][coll][size=150][b]PROPERTY REPORT[/b][/size]|[a=Номер дела]" + cid + "[/a][/coll][hr][/hr]" +
-             "[doc_b=ВЛАДЕЛЕЦ][coll][a=Имя]" + active.querySelector('.pr_own_name').value + "[/a]|[a=Адрес]" + active.querySelector('.pr_addr').value + "[/a][/coll][a=Причина]" + active.querySelector('.pr_reason').value + "[/a][/doc_b]" +
-             "[doc_b=СПИСОК][coll4]Кол-во|Тип|Опис|Цена[/coll4]" + listBB + "[/doc_b][/textarea]";
+        subj = "[PROP-" + cid + "] " + v(active.querySelector('.pr_own_name').value);
+        bb = reportHeader('PROPERTY REPORT', cid) +
+             sectionHeader('Владелец') +
+             fieldLine('Имя', active.querySelector('.pr_own_name').value) +
+             fieldLine('Адрес', active.querySelector('.pr_addr').value) +
+             fieldLine('Причина изъятия', active.querySelector('.pr_reason').value) + '\n' +
+             sectionHeader('Список имущества') +
+             bbTable(['Кол-во', 'Тип', 'Описание', 'Цена'], listRows);
     }
 
     else if (type === 'CCW') {
-        subj = "[CCW NOTICE] " + active.querySelector('.ccw_name').value;
-        bb = "[textarea][coll][size=150][b]NOTICE OF CCW SUSPENSION[/b][/size]|[a=Дата]" + active.querySelector('.ccw_date').value + "[/a][/coll][hr][/hr]" +
-             "[doc_b=ИНФОРМАЦИЯ О ЛИЦЕНЗИАТЕ][coll][a=Имя Фамилия]" + active.querySelector('.ccw_name').value + "[/a]|[a=Лицензия CCW #]" + active.querySelector('.ccw_num').value + "[/a][/coll][coll][a=Адрес]" + active.querySelector('.ccw_addr').value + "[/a]|[a=Телефон]" + active.querySelector('.ccw_phone').value + "[/a][/coll][/doc_b]" +
-             "[doc_b=ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ][coll3][a=CASE #]" + active.querySelector('.ccw_case').value + "[/a]|[a=Дата]" + active.querySelector('.ccw_date').value + "[/a]|[a=Офицер]" + active.querySelector('.ccw_off').value + "[/a][/coll3][/doc_b]" +
-             "[doc_b=ПРИЧИНА И ИЗЪЯТИЕ][a=Причина]" + active.querySelector('.ccw_reason').value + "[/a][a=Нарратив]" + active.querySelector('.ccw_narr').value + "[/a][coll3][a=Марка]" + active.querySelector('.ccw_make').value + "[/a]|[a=Модель]" + active.querySelector('.ccw_model').value + "[/a]|[a=Серийный номер]" + active.querySelector('.ccw_serial').value + "[/a][/coll3][/doc_b][/textarea]";
+        subj = "[CCW NOTICE] " + v(active.querySelector('.ccw_name').value);
+        bb = reportHeader('NOTICE OF CCW SUSPENSION', cid) +
+             sectionHeader('Информация о лицензиате') +
+             fieldLine('Имя Фамилия', active.querySelector('.ccw_name').value) +
+             fieldLine('Лицензия CCW #', active.querySelector('.ccw_num').value) +
+             fieldLine('Адрес', active.querySelector('.ccw_addr').value) +
+             fieldLine('Телефон', active.querySelector('.ccw_phone').value) + '\n' +
+             sectionHeader('Информация об инциденте') +
+             fieldLine('Case #', active.querySelector('.ccw_case').value) +
+             fieldLine('Дата', active.querySelector('.ccw_date').value) +
+             fieldLine('Офицер', active.querySelector('.ccw_off').value) + '\n' +
+             sectionHeader('Причина и изъятие') +
+             fieldLine('Причина', active.querySelector('.ccw_reason').value) +
+             fieldLine('Нарратив', active.querySelector('.ccw_narr').value) +
+             fieldLine('Марка', active.querySelector('.ccw_make').value) +
+             fieldLine('Модель', active.querySelector('.ccw_model').value) +
+             fieldLine('Серийный номер', active.querySelector('.ccw_serial').value);
     }
 
     else if (type === 'INTERNAL') {
         var aCont = document.getElementById('int_accused').children;
-        var aBB = "";
-        for (var i = 0; i < aCont.length; i++) aBB += "[coll4][a]" + aCont[i].querySelector('.ia_name').value + "[/a]|[a]" + aCont[i].querySelector('.ia_ser').value + "[/a]|[a]" + aCont[i].querySelector('.ia_rank').value + "[/a]|[a]" + aCont[i].querySelector('.ia_div').value + "[/a][/coll4]\n";
+        var aRows = [];
+        for (var i = 0; i < aCont.length; i++) {
+            aRows.push([
+                aCont[i].querySelector('.ia_name').value,
+                aCont[i].querySelector('.ia_ser').value,
+                aCont[i].querySelector('.ia_rank').value,
+                aCont[i].querySelector('.ia_div').value
+            ]);
+        }
 
         var wCont = document.getElementById('int_witness').children;
-        var wBB = "";
-        for (var i = 0; i < wCont.length; i++) wBB += "[coll3][a]" + wCont[i].querySelector('.iw_name').value + "[/a]|[a]" + wCont[i].querySelector('.iw_phone').value + "[/a]|[a]" + wCont[i].querySelector('.iw_addr').value + "[/a][/coll3]\n";
+        var wRows = [];
+        for (var i = 0; i < wCont.length; i++) {
+            wRows.push([
+                wCont[i].querySelector('.iw_name').value,
+                wCont[i].querySelector('.iw_phone').value,
+                wCont[i].querySelector('.iw_addr').value
+            ]);
+        }
 
         subj = "[IA-" + cid + "] Complaint";
-        bb = "[textarea][coll][size=150][b]INTERNAL COMPLAINT[/b][/size]|[a=CF No.]" + cid + "[/a][/coll][hr][/hr]" +
-             "[doc_b=ИНФОРМАЦИЯ О ЗАЯВИТЕЛЕ][coll][a=Имя]" + active.querySelector('.int_rp_name').value + "[/a]|[a=Телефон]" + active.querySelector('.int_rp_phone').value + "[/a][/coll][coll][a=Адрес]" + active.querySelector('.int_rp_addr').value + "[/a]|[a=DOB/ID]" + active.querySelector('.int_rp_id').value + "[/a][/coll][/doc_b]" +
-             "[doc_b=ИНЦИДЕНТ][coll3][a=Дата]" + active.querySelector('.int_date').value + "[/a]|[a=Время]" + active.querySelector('.int_time').value + "[/a]|[a=Локация]" + active.querySelector('.int_loc').value + "[/a][/coll3][/doc_b]" +
-             "[doc_b=ОБВИНЯЕМЫЕ СОТРУДНИКИ][coll4]Имя|Серийный|Звание|Дивизион[/coll4]" + aBB + "[/doc_b]" +
-             "[doc_b=СВИДЕТЕЛИ][coll3]Имя|Телефон|Адрес[/coll3]" + wBB + "[/doc_b]" +
-             "[doc_b=СУТЬ ЖАЛОБЫ][a=Характер]" + active.querySelector('.int_allegation').value + "[/a][a=Описание]" + active.querySelector('.int_narr').value + "[/a][/doc_b][/textarea]";
+        bb = reportHeader('INTERNAL COMPLAINT', cid) +
+             sectionHeader('Информация о заявителе') +
+             fieldLine('Имя', active.querySelector('.int_rp_name').value) +
+             fieldLine('Телефон', active.querySelector('.int_rp_phone').value) +
+             fieldLine('Адрес', active.querySelector('.int_rp_addr').value) +
+             fieldLine('DOB/ID', active.querySelector('.int_rp_id').value) + '\n' +
+             sectionHeader('Инцидент') +
+             fieldLine('Дата', active.querySelector('.int_date').value) +
+             fieldLine('Время', active.querySelector('.int_time').value) +
+             fieldLine('Локация', active.querySelector('.int_loc').value) + '\n' +
+             sectionHeader('Обвиняемые сотрудники') +
+             bbTable(['Имя', 'Серийный', 'Звание', 'Дивизион'], aRows) + '\n' +
+             sectionHeader('Свидетели') +
+             bbTable(['Имя', 'Телефон', 'Адрес'], wRows) + '\n' +
+             sectionHeader('Суть жалобы') +
+             fieldLine('Характер', active.querySelector('.int_allegation').value) +
+             fieldLine('Описание', active.querySelector('.int_narr').value);
     }
 
     document.getElementById('outTitle').value = subj;
