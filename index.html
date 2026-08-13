@@ -250,7 +250,7 @@
         <div class="doc-b-content"><div id="inc_persons"></div><button type="button" class="btn-add" onclick="addIncPerson()">+ ДОБАВИТЬ ЛИЦО</button></div>
         <div class="doc-b-header">ВОВЛЕЧЁННОЕ ИМУЩЕСТВО</div>
         <div class="doc-b-content"><div id="inc_props"></div><button type="button" class="btn-add" onclick="addIncProp()">+ ДОБАВИТЬ ИМУЩЕСТВО</button></div>
-        <div class="doc-b-header">MODUS OPERANDI</div>
+        <div class="doc-b-header">МЕТОД СОВЕРШЕНИЯ ПРЕСТУПЛЕНИЯ</div>
         <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input i_mo" style="height:80px" placeholder="Метод совершения преступления"></textarea></div></div>
         <div class="doc-b-header">ХРОНОЛОГИЧЕСКИЙ ОТЧЕТ</div>
         <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input i_narr" style="height:250px" placeholder="Подробное описание ситуации"></textarea></div></div>
@@ -729,7 +729,7 @@ document.getElementById('submitBtn').onclick = function () {
              bbTable(['Тип', 'Имя', 'Дата рождения', 'Пол', 'Раса', 'Тел'], pRows) + hr() +
              sectionHeader('Вовлечённое имущество') +
              bbTable(['Статус', 'Наименование', 'Описание', 'Стоимость'], prRows) + hr() +
-             sectionHeader('Modus Operandi') +
+             sectionHeader('Метод совершения преступления') +
              quoteBlock(active.querySelector('.i_mo').value) +
              sectionHeader('Хронологический отчёт') +
              quoteBlock(active.querySelector('.i_narr').value) + hr() +
