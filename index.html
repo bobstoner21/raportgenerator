@@ -233,7 +233,7 @@
         <div class="field-label">Серийный номер</div>
         <input type="text" class="field-input" id="officerSerial" placeholder="1234">
     </div>
-    <small>Заполняется автоматически во всех отчётах и сохраняется в этом браузере.</small>
+    <small>Заполняется автоматически во всех отчетах и сохраняется в этом браузере.</small>
 </div>
 
 <div class="tab-nav">
@@ -292,9 +292,9 @@
                 </div>
             </div>
         </div>
-        <div class="doc-b-header">ВОВЛЕЧЁННЫЕ ЛИЦА</div>
+        <div class="doc-b-header">ВОВЛЕЧЕННЫЕ ЛИЦА</div>
         <div class="doc-b-content"><div id="inc_persons"></div><button type="button" class="btn-add" onclick="addIncPerson()">+ ДОБАВИТЬ ЛИЦО</button></div>
-        <div class="doc-b-header">ВОВЛЕЧЁННОЕ ИМУЩЕСТВО</div>
+        <div class="doc-b-header">ВОВЛЕЧЕННОЕ ИМУЩЕСТВО</div>
         <div class="doc-b-content"><div id="inc_props"></div><button type="button" class="btn-add" onclick="addIncProp()">+ ДОБАВИТЬ ИМУЩЕСТВО</button></div>
         <div class="doc-b-header">МЕТОД СОВЕРШЕНИЯ ПРЕСТУПЛЕНИЯ</div>
         <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input i_mo" style="height:80px" placeholder="Метод совершения преступления"></textarea></div></div>
@@ -346,7 +346,7 @@
                 <div class="field-wrapper"><div class="field-label">СЕРИЙНЫЙ НОМЕР</div><input type="text" class="field-input a_ser"></div>
             </div>
         </div>
-        <div class="doc-b-header">ДРУГИЕ ВОВЛЕЧЁННЫЕ ЛИЦА</div>
+        <div class="doc-b-header">ДРУГИЕ ВОВЛЕЧЕННЫЕ ЛИЦА</div>
         <div class="doc-b-content"><div id="arr_persons"></div><button type="button" class="btn-add" onclick="addArrPerson()">+ ДОБАВИТЬ ЛИЦО</button></div>
         <div class="doc-b-header">ПОДРОБНОСТИ ИНЦИДЕНТА</div>
         <div class="doc-b-content"><div class="field-wrapper"><textarea class="field-input a_narr" style="height:200px"></textarea></div></div>
@@ -359,7 +359,7 @@
 
         <div class="doc-b-header">ИНФОРМАЦИЯ ОБ ИНЦИДЕНТЕ</div>
         <div class="doc-b-content">
-            <div class="field-wrapper"><div class="field-label">АДРЕС, ГДЕ ПРОИЗОШЁЛ ИНЦИДЕНТ</div><input type="text" class="field-input t_addr" placeholder="Например: E SLAUSON AV / S SAN PEDRO ST"></div>
+            <div class="field-wrapper"><div class="field-label">АДРЕС, ГДЕ ПРОИЗОШЕЛ ИНЦИДЕНТ</div><input type="text" class="field-input t_addr" placeholder="Например: E SLAUSON AV / S SAN PEDRO ST"></div>
             <div class="grid-2">
                  <div class="field-wrapper"><div class="field-label">ДАТА</div><input type="date" class="field-input t_date"></div>
                  <div class="field-wrapper"><div class="field-label">ВРЕМЯ</div><input type="time" class="field-input t_time"></div>
@@ -427,7 +427,7 @@
              </div>
         </div>
 
-        <div class="doc-b-header">ОФИЦЕР/ПОМОЩНИК, СОСТАВИВШИЙ ОТЧЁТ</div>
+        <div class="doc-b-header">ОФИЦЕР/ПОМОЩНИК, СОСТАВИВШИЙ ОТЧЕТ</div>
         <div class="doc-b-content">
              <div class="grid-2">
                 <div class="field-wrapper"><div class="field-label">ИМЯ ОФИЦЕРА/ПОМОЩНИКА</div><input type="text" class="field-input u_officer" placeholder="Заполняется из данных офицера/помощника"></div>
@@ -487,8 +487,8 @@
             </div>
             <div class="field-wrapper"><div class="field-label">ДЕТАЛИ / ПОКАЗАНИЯ</div><textarea class="field-input c_narr" style="height:200px"></textarea></div>
             <div class="grid-2">
-                 <div class="field-wrapper"><div class="field-label">ВОВЛЕЧЁННЫЕ ЛИЦА</div><input type="text" class="field-input c_pers"></div>
-                 <div class="field-wrapper"><div class="field-label">ВОВЛЕЧЁННОЕ ИМУЩЕСТВО</div><input type="text" class="field-input c_prop"></div>
+                 <div class="field-wrapper"><div class="field-label">ВОВЛЕЧЕННЫЕ ЛИЦА</div><input type="text" class="field-input c_pers"></div>
+                 <div class="field-wrapper"><div class="field-label">ВОВЛЕЧЕННОЕ ИМУЩЕСТВО</div><input type="text" class="field-input c_prop"></div>
             </div>
         </div>
     </div>
@@ -743,13 +743,13 @@ function fieldGrid(fields, columns) {
 
 // Один большой блок: серый заголовок + отдельная строка значения.
 function fieldBlock(label, value, asQuote) {
-    // Для развёрнутых ответов всегда используем полноширинный блок:
+    // Для развернутых ответов всегда используем полноширинный блок:
     // заголовок отдельной строкой + текст ниже. Так XenForo не сжимает
-    // длинный ответ в узкую таблицу и не создаёт горизонтальный скролл.
+    // длинный ответ в узкую таблицу и не создает горизонтальный скролл.
     return narrativeBlock(label, value);
 }
 
-// Большой текст выводим без вложенного [QUOTE] внутри таблицы. Это не даёт XenForo
+// Большой текст выводим без вложенного [QUOTE] внутри таблицы. Это не дает XenForo
 // растягивать ячейку по ширине и убирает горизонтальный скролл на длинных narrative.
 function narrativeBlock(label, value) {
     var text = v(value);
@@ -830,7 +830,7 @@ function stackedRecords(sectionTitle, headers, rows, longIndexes) {
     return s;
 }
 
-// Таблица со списком — для вовлечённых лиц/имущества и т.п.
+// Таблица со списком — для вовлеченных лиц/имущества и т.п.
 function bbTable(headers, rows) {
     var s = '[CENTER][TABLE]\n[TR]\n';
 
@@ -962,14 +962,14 @@ document.getElementById('submitBtn').onclick = function () {
              incidentCheckTable(incidentItems) +
 
              stackedRecords(
-                 'Вовлечённые лица',
+                 'Вовлеченные лица',
                  ['Тип', 'Имя', 'Дата рождения', 'Пол', 'Раса', 'Тел'],
                  pRows,
                  []
              ) + hr() +
 
              stackedRecords(
-                 'Вовлечённое имущество',
+                 'Вовлеченное имущество',
                  ['Статус', 'Наименование', 'Описание', 'Стоимость'],
                  prRows,
                  [2]
@@ -977,7 +977,7 @@ document.getElementById('submitBtn').onclick = function () {
 
              narrativeBlock('Метод совершения преступления', active.querySelector('.i_mo').value) +
 
-             narrativeBlock('Хронологический отчёт', active.querySelector('.i_narr').value) + hr() +
+             narrativeBlock('Хронологический отчет', active.querySelector('.i_narr').value) + hr() +
 
              sectionHeader('Информация об офицере/помощнике') +
              fieldGrid([
@@ -1042,7 +1042,7 @@ document.getElementById('submitBtn').onclick = function () {
              ], 3) + hr() +
 
              stackedRecords(
-                 'Другие вовлечённые лица',
+                 'Другие вовлеченные лица',
                  ['Имя', 'Детали (пол, раса, дата рождения)'],
                  pRows,
                  [1]
@@ -1064,7 +1064,7 @@ document.getElementById('submitBtn').onclick = function () {
         bb = reportHeader('TRAFFIC COLLISION REPORT', cid) +
              sectionHeader('Информация об инциденте') +
              fieldGrid([
-                 ['Адрес, где произошёл инцидент', active.querySelector('.t_addr').value],
+                 ['Адрес, где произошел инцидент', active.querySelector('.t_addr').value],
                  ['Дата', active.querySelector('.t_date').value],
                  ['Время', active.querySelector('.t_time').value],
                  ['Офицер/помощник, составивший репорт', active.querySelector('.t_off').value],
@@ -1126,7 +1126,7 @@ document.getElementById('submitBtn').onclick = function () {
         var uofOfficerSerial = officerSerialInput.value || '';
 
         bb = reportHeader('USE OF FORCE REPORT', cid) +
-             sectionHeader('Офицер/помощник, составивший отчёт') +
+             sectionHeader('Офицер/помощник, составивший отчет') +
              fieldGrid([
                  ['Имя офицера/помощника', uofOfficer],
                  ['Серийный номер', uofOfficerSerial]
@@ -1167,8 +1167,8 @@ document.getElementById('submitBtn').onclick = function () {
              ], 3) +
              narrativeBlock('Детали / показания', active.querySelector('.c_narr').value) +
              fieldGrid([
-                 ['Вовлечённые лица', active.querySelector('.c_pers').value],
-                 ['Вовлечённое имущество', active.querySelector('.c_prop').value]
+                 ['Вовлеченные лица', active.querySelector('.c_pers').value],
+                 ['Вовлеченное имущество', active.querySelector('.c_prop').value]
              ], 2);
     }
 
