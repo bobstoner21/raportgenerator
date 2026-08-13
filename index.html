@@ -970,6 +970,12 @@ document.getElementById('submitBtn').onclick = function () {
         var uofOfficerSerial = officerSerialInput.value || '';
 
         bb = reportHeader('USE OF FORCE REPORT', cid) +
+             sectionHeader('Офицер, составивший отчёт') +
+             fieldGrid([
+                 ['Имя офицера', uofOfficer],
+                 ['Серийный номер', uofOfficerSerial]
+             ], 2) + hr() +
+
              sectionHeader('Информация об инциденте') +
              fieldGrid([
                  ['Субъект', active.querySelector('.u_sub').value],
@@ -983,13 +989,7 @@ document.getElementById('submitBtn').onclick = function () {
              checkTable(toolEls) + hr() +
 
              sectionHeader('Подробности (narrative)') +
-             narrativeBlock('Описание ситуации', active.querySelector('.u_narr').value) + hr() +
-
-             sectionHeader('Офицер, составивший отчёт') +
-             fieldGrid([
-                 ['Имя офицера', uofOfficer],
-                 ['Серийный номер', uofOfficerSerial]
-             ], 2);
+             narrativeBlock('Описание ситуации', active.querySelector('.u_narr').value);
     }
 
     else if (type === 'COMPLAINT') {
