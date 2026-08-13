@@ -508,7 +508,7 @@
             <textarea id="outBB" readonly></textarea>
             <button type="button" class="copy-btn" onclick="copyField('outBB', this)">Копировать</button>
         </div>
-        <div class="result-hint">Используются только стандартные BBCode-теги XenForo ([SIZE], [B], [HR], [TABLE]/[TR]/[TH]/[TD], [CENTER]) — никакой донастройки в ACP не требуется, можно сразу вставлять в форму создания темы.</div>
+        <div class="result-hint">Используются только стандартные парные BBCode-теги XenForo ([SIZE], [B], [HR][/HR], [QUOTE], [TABLE]/[TR]/[TH]/[TD], [CENTER]) — донастройка ACP не нужна, вставляйте сразу в форму создания темы.</div>
     </div>
 </div>
 
@@ -629,14 +629,24 @@ function copyField(id, btn) {
 
 function v(val) { return (val && val.toString().trim()) ? val.toString().trim() : '—'; }
 
-// Заголовок секции — жирный, чуть крупнее, на тёмной "плашке" через COLOR/BACKGROUND не всегда доступны,
-// поэтому используем SIZE+B+подчёркивающую линию из символов, это гарантированно работает без ACP-настроек.
+// ВАЖНО: [HR] в XenForo — парный тег, самозакрывающегося варианта [HR] без [/HR]
+// парсер не понимает и "проглатывает" всё, что идёт после него, как содержимое тега.
+// Поэтому HR всегда используем ТОЛЬКО в виде [HR][/HR].
+function hr() {
+    return '[HR][/HR]\n\n';
+}
+
 function sectionHeader(text) {
-    return '[SIZE=4][B]' + text + '[/B][/SIZE]\n';
+    return '[SIZE=4][B]' + text + '[/B][/SIZE]\n\n';
 }
 
 function fieldLine(label, value) {
     return '[B]' + label + ':[/B] ' + v(value) + '\n';
+}
+
+// Развёрнутый текст (нарратив, MO и т.д.) — в цитату, как в эталонном примере
+function quoteBlock(value) {
+    return '[QUOTE]' + v(value) + '[/QUOTE]\n\n';
 }
 
 // Таблица: headers — массив строк, rows — массив массивов строк
@@ -657,14 +667,14 @@ function bbTable(headers, rows) {
             s += '[/TR]\n';
         });
     }
-    s += '[/TABLE]\n';
+    s += '[/TABLE]\n\n';
     return s;
 }
 
 function reportHeader(title, cid) {
-    return '[CENTER][SIZE=6][B]' + title + '[/B][/SIZE][/CENTER]\n' +
-           '[CENTER][B]Номер дела:[/B] ' + cid + '[/CENTER]\n' +
-           '[HR]\n\n';
+    return '[CENTER][SIZE=6][B]' + title + '[/B][/SIZE]\n' +
+           '[SIZE=2][B]Номер дела:[/B] ' + cid + '[/SIZE][/CENTER]\n\n' +
+           hr();
 }
 
 function checkMark(el) {
@@ -714,15 +724,15 @@ document.getElementById('submitBtn').onclick = function () {
              fieldLine('Дата инцидента', active.querySelector('.i_date_inc').value) +
              fieldLine('Время инцидента', active.querySelector('.i_time_inc').value) +
              fieldLine('Место инцидента', active.querySelector('.i_loc').value) +
-             fieldLine('Тип инцидента', active.querySelector('.i_type').value) + '\n' +
+             fieldLine('Тип инцидента', active.querySelector('.i_type').value) + '\n' + hr() +
              sectionHeader('Вовлечённые лица') +
-             bbTable(['Тип', 'Имя', 'Дата рождения', 'Пол', 'Раса', 'Тел'], pRows) + '\n' +
+             bbTable(['Тип', 'Имя', 'Дата рождения', 'Пол', 'Раса', 'Тел'], pRows) + hr() +
              sectionHeader('Вовлечённое имущество') +
-             bbTable(['Статус', 'Наименование', 'Описание', 'Стоимость'], prRows) + '\n' +
+             bbTable(['Статус', 'Наименование', 'Описание', 'Стоимость'], prRows) + hr() +
              sectionHeader('Modus Operandi') +
-             v(active.querySelector('.i_mo').value) + '\n\n' +
+             quoteBlock(active.querySelector('.i_mo').value) +
              sectionHeader('Хронологический отчёт') +
-             v(active.querySelector('.i_narr').value) + '\n\n' +
+             quoteBlock(active.querySelector('.i_narr').value) + hr() +
              sectionHeader('Информация об офицере') +
              fieldLine('Имя офицера', active.querySelector('.i_off').value) +
              fieldLine('Серийный номер', active.querySelector('.i_ser').value);
@@ -761,7 +771,7 @@ document.getElementById('submitBtn').onclick = function () {
              fieldLine('Вес', active.querySelector('.a_wgt').value) +
              fieldLine('Дата рождения', active.querySelector('.a_dob').value) +
              fieldLine('Возраст', active.querySelector('.a_age').value) +
-             fieldLine('Место содержания', active.querySelector('.a_jail').value) + '\n' +
+             fieldLine('Место содержания', active.querySelector('.a_jail').value) + '\n' + hr() +
              sectionHeader('Сведения об аресте') +
              fieldLine('Место задержания', active.querySelector('.a_loc_arr').value) +
              fieldLine('Дата задержания', active.querySelector('.a_date_arr').value) +
@@ -769,11 +779,11 @@ document.getElementById('submitBtn').onclick = function () {
              fieldLine('Обвинение', active.querySelector('.a_charge').value) +
              fieldLine('Место совершения преступления', active.querySelector('.a_loc_crime').value) +
              fieldLine('Задерживающий офицер', active.querySelector('.a_off').value) +
-             fieldLine('Серийный номер', active.querySelector('.a_ser').value) + '\n' +
+             fieldLine('Серийный номер', active.querySelector('.a_ser').value) + '\n' + hr() +
              sectionHeader('Другие вовлечённые лица') +
-             bbTable(['Имя', 'Детали (пол, раса, дата рождения)'], pRows) + '\n' +
+             bbTable(['Имя', 'Детали (пол, раса, дата рождения)'], pRows) + hr() +
              sectionHeader('Подробности инцидента') +
-             v(active.querySelector('.a_narr').value) + '\n\n' +
+             quoteBlock(active.querySelector('.a_narr').value) + hr() +
              sectionHeader('Изъятое имущество') +
              bbTable(['Кол-во', 'Тип', 'Модель', 'Разное, цвет, калибр'], prRows);
     }
@@ -787,7 +797,7 @@ document.getElementById('submitBtn').onclick = function () {
              fieldLine('Дата', active.querySelector('.t_date').value) +
              fieldLine('Время', active.querySelector('.t_time').value) +
              fieldLine('Офицер, составивший репорт', active.querySelector('.t_off').value) +
-             fieldLine('Серийный номер офицера', active.querySelector('.t_ser').value) + '\n' +
+             fieldLine('Серийный номер офицера', active.querySelector('.t_ser').value) + '\n' + hr() +
              sectionHeader('Детали инцидента (участники)') +
              bbTable(
                 ['', 'Участник-1', 'Участник-2'],
@@ -798,14 +808,14 @@ document.getElementById('submitBtn').onclick = function () {
                     ['Номер авто', active.querySelector('.t_p1_plate').value, active.querySelector('.t_p2_plate').value],
                     ['Страховая компания', active.querySelector('.t_p1_ins').value, active.querySelector('.t_p2_ins').value]
                 ]
-             ) + '\n' +
+             ) + hr() +
              sectionHeader('Условия столкновения') +
              fieldLine('Тип столкновения', active.querySelector('.t_type').value) +
              fieldLine('Погодные условия', active.querySelector('.t_weather').value) +
-             fieldLine('Дорожные условия', active.querySelector('.t_road').value) +
-             fieldLine('Подробности об инциденте', active.querySelector('.t_narr').value) + '\n' +
+             fieldLine('Дорожные условия', active.querySelector('.t_road').value) + '\n' +
+             quoteBlock(active.querySelector('.t_narr').value) +
              sectionHeader('Заключительные причины столкновения') +
-             v(active.querySelector('.t_concl').value) + '\n\n' +
+             quoteBlock(active.querySelector('.t_concl').value) + hr() +
              sectionHeader('Дополнительно') +
              checkMark(active.querySelector('.t_inj')) + ' Имеются пострадавшие\n' +
              checkMark(active.querySelector('.t_tow')) + ' Транспорт эвакуирован\n' +
@@ -839,11 +849,11 @@ document.getElementById('submitBtn').onclick = function () {
         bb = reportHeader('USE OF FORCE REPORT', cid) +
              sectionHeader('Информация об инциденте') +
              fieldLine('Субъект', active.querySelector('.u_sub').value) +
-             fieldLine('Тип инцидента', active.querySelector('.u_type').value) + '\n' +
-             sectionHeader('Причина применения силы') + reasonsBB + '\n' +
-             sectionHeader('Использованные средства') + toolsBB + '\n' +
+             fieldLine('Тип инцидента', active.querySelector('.u_type').value) + '\n' + hr() +
+             sectionHeader('Причина применения силы') + reasonsBB + '\n' + hr() +
+             sectionHeader('Использованные средства') + toolsBB + '\n' + hr() +
              sectionHeader('Подробности (narrative)') +
-             v(active.querySelector('.u_narr').value);
+             quoteBlock(active.querySelector('.u_narr').value);
     }
 
     else if (type === 'COMPLAINT') {
@@ -853,12 +863,12 @@ document.getElementById('submitBtn').onclick = function () {
              fieldLine('Имя, фамилия', active.querySelector('.c_name').value) +
              fieldLine('Контактный телефон', active.querySelector('.c_phone').value) +
              fieldLine('Адрес проживания', active.querySelector('.c_addr').value) +
-             fieldLine('Дата рождения', active.querySelector('.c_dob').value) + '\n' +
+             fieldLine('Дата рождения', active.querySelector('.c_dob').value) + '\n' + hr() +
              sectionHeader('Детали инцидента') +
              fieldLine('Тип происшествия', active.querySelector('.c_type').value) +
              fieldLine('Дата', active.querySelector('.c_date').value) +
-             fieldLine('Место', active.querySelector('.c_loc').value) +
-             fieldLine('Детали / показания заявителя', active.querySelector('.c_narr').value) +
+             fieldLine('Место', active.querySelector('.c_loc').value) + '\n' +
+             quoteBlock(active.querySelector('.c_narr').value) +
              fieldLine('Вовлечённые лица', active.querySelector('.c_pers').value) +
              fieldLine('Вовлечённое имущество', active.querySelector('.c_prop').value);
     }
@@ -880,7 +890,7 @@ document.getElementById('submitBtn').onclick = function () {
              sectionHeader('Владелец') +
              fieldLine('Имя', active.querySelector('.pr_own_name').value) +
              fieldLine('Адрес', active.querySelector('.pr_addr').value) +
-             fieldLine('Причина изъятия', active.querySelector('.pr_reason').value) + '\n' +
+             fieldLine('Причина изъятия', active.querySelector('.pr_reason').value) + '\n' + hr() +
              sectionHeader('Список имущества') +
              bbTable(['Кол-во', 'Тип', 'Описание', 'Цена'], listRows);
     }
@@ -892,14 +902,14 @@ document.getElementById('submitBtn').onclick = function () {
              fieldLine('Имя Фамилия', active.querySelector('.ccw_name').value) +
              fieldLine('Лицензия CCW #', active.querySelector('.ccw_num').value) +
              fieldLine('Адрес', active.querySelector('.ccw_addr').value) +
-             fieldLine('Телефон', active.querySelector('.ccw_phone').value) + '\n' +
+             fieldLine('Телефон', active.querySelector('.ccw_phone').value) + '\n' + hr() +
              sectionHeader('Информация об инциденте') +
              fieldLine('Case #', active.querySelector('.ccw_case').value) +
              fieldLine('Дата', active.querySelector('.ccw_date').value) +
-             fieldLine('Офицер', active.querySelector('.ccw_off').value) + '\n' +
+             fieldLine('Офицер', active.querySelector('.ccw_off').value) + '\n' + hr() +
              sectionHeader('Причина и изъятие') +
-             fieldLine('Причина', active.querySelector('.ccw_reason').value) +
-             fieldLine('Нарратив', active.querySelector('.ccw_narr').value) +
+             fieldLine('Причина', active.querySelector('.ccw_reason').value) + '\n' +
+             quoteBlock(active.querySelector('.ccw_narr').value) +
              fieldLine('Марка', active.querySelector('.ccw_make').value) +
              fieldLine('Модель', active.querySelector('.ccw_model').value) +
              fieldLine('Серийный номер', active.querySelector('.ccw_serial').value);
@@ -933,18 +943,18 @@ document.getElementById('submitBtn').onclick = function () {
              fieldLine('Имя', active.querySelector('.int_rp_name').value) +
              fieldLine('Телефон', active.querySelector('.int_rp_phone').value) +
              fieldLine('Адрес', active.querySelector('.int_rp_addr').value) +
-             fieldLine('DOB/ID', active.querySelector('.int_rp_id').value) + '\n' +
+             fieldLine('DOB/ID', active.querySelector('.int_rp_id').value) + '\n' + hr() +
              sectionHeader('Инцидент') +
              fieldLine('Дата', active.querySelector('.int_date').value) +
              fieldLine('Время', active.querySelector('.int_time').value) +
-             fieldLine('Локация', active.querySelector('.int_loc').value) + '\n' +
+             fieldLine('Локация', active.querySelector('.int_loc').value) + '\n' + hr() +
              sectionHeader('Обвиняемые сотрудники') +
-             bbTable(['Имя', 'Серийный', 'Звание', 'Дивизион'], aRows) + '\n' +
+             bbTable(['Имя', 'Серийный', 'Звание', 'Дивизион'], aRows) + hr() +
              sectionHeader('Свидетели') +
-             bbTable(['Имя', 'Телефон', 'Адрес'], wRows) + '\n' +
+             bbTable(['Имя', 'Телефон', 'Адрес'], wRows) + hr() +
              sectionHeader('Суть жалобы') +
-             fieldLine('Характер', active.querySelector('.int_allegation').value) +
-             fieldLine('Описание', active.querySelector('.int_narr').value);
+             fieldLine('Характер', active.querySelector('.int_allegation').value) + '\n' +
+             quoteBlock(active.querySelector('.int_narr').value);
     }
 
     document.getElementById('outTitle').value = subj;
