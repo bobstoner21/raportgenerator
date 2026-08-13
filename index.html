@@ -703,6 +703,17 @@ function fieldBlock(label, value, asQuote) {
            '[/TABLE]\n\n';
 }
 
+// Большой текст выводим без вложенного [QUOTE] внутри таблицы. Это не даёт XenForo
+// растягивать ячейку по ширине и убирает горизонтальный скролл на длинных narrative.
+function narrativeBlock(label, value) {
+    var text = v(value);
+    if (!text) text = '—';
+    return '[CENTER][TABLE]\n' +
+           '[TR]\n[TH][CENTER][B]' + label + '[/B][/CENTER][/TH]\n[/TR]\n' +
+           '[/TABLE][/CENTER]\n' +
+           '[QUOTE]' + text + '[/QUOTE]\n\n';
+}
+
 // Таблица со списком — для вовлечённых лиц/имущества и т.п.
 function bbTable(headers, rows) {
     var s = '[CENTER][TABLE]\n[TR]\n';
@@ -965,12 +976,6 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Тип инцидента', active.querySelector('.u_type').value]
              ], 2) + hr() +
 
-             sectionHeader('Офицер, составивший отчёт') +
-             fieldGrid([
-                 ['Имя офицера', uofOfficer],
-                 ['Серийный номер', uofOfficerSerial]
-             ], 2) + hr() +
-
              sectionHeader('Причина применения силы') +
              checkTable(reasonEls) + hr() +
 
@@ -978,7 +983,13 @@ document.getElementById('submitBtn').onclick = function () {
              checkTable(toolEls) + hr() +
 
              sectionHeader('Подробности (narrative)') +
-             fieldBlock('Описание ситуации', active.querySelector('.u_narr').value, true);
+             narrativeBlock('Описание ситуации', active.querySelector('.u_narr').value) + hr() +
+
+             sectionHeader('Офицер, составивший отчёт') +
+             fieldGrid([
+                 ['Имя офицера', uofOfficer],
+                 ['Серийный номер', uofOfficerSerial]
+             ], 2);
     }
 
     else if (type === 'COMPLAINT') {
