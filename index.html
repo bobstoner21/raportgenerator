@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LEO Report Generator</title>
+<title>LEO REPORT GENERATOR</title>
 <style>
     * { box-sizing: border-box; }
     body {
@@ -104,29 +104,11 @@
         padding: 5px;
     }
 
-    .checkbox-grid-4 {
+    .incident-grid-4 {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 2px;
-        padding: 0;
-    }
-
-    .checkbox-grid-4 .checkbox-label {
-        min-height: 32px;
-        border-color: #999;
-        background: #fff;
-    }
-
-    @media (max-width: 800px) {
-        .checkbox-grid-4 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 500px) {
-        .checkbox-grid-4 {
-            grid-template-columns: 1fr;
-        }
+        gap: 4px;
+        padding: 5px;
     }
 
     .checkbox-label {
@@ -240,7 +222,7 @@
 </head>
 <body>
 
-<h1 class="page-title">LEO Report Generator</h1>
+<h1 class="page-title">LEO REPORT GENERATOR</h1>
 
 <div class="officer-bar">
     <div class="field-wrapper">
@@ -278,40 +260,37 @@
                 <div class="field-wrapper"><div class="field-label">ВРЕМЯ ИНЦИДЕНТА</div><input type="time" class="field-input i_time_inc"></div>
             </div>
             <div class="field-wrapper"><div class="field-label">МЕСТО ИНЦИДЕНТА</div><input type="text" class="field-input i_loc" placeholder="Например: Little Seoul, Palomino Ave"></div>
-        </div>
-        <div class="doc-b-header">ИНЦИДЕНТ</div>
-        <div class="doc-b-content">
-            <div class="checkbox-grid-4">
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Незаконное проникновение"> Незаконное проникновение</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Кража со взломом"> Кража со взломом</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Драка"> Драка</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Помощь автомобилисту"> Помощь автомобилисту</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Преследование автомобиля"> Преследование автомобиля</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Неосторожное вождение"> Неосторожное вождение</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Публичный протест"> Публичный протест</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Трафик-стоп"> Трафик-стоп</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Вызов врача по запросу офицера"> Вызов врача по запросу офицера</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Сопровождение транспорта"> Сопровождение транспорта</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Пешее преследование"> Пешее преследование</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Больной человек"> Больной человек</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Нападение"> Нападение</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Нападение с огнестрельным оружием"> Нападение с огнестрельным оружием</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Фелони-стоп"> Фелони-стоп</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="ДТП без травм"> ДТП без травм</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="ДТП с травмами"> ДТП с травмами</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Без сознания / Обморок"> Без сознания / Обморок</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Пострадавший"> Пострадавший</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Слышны выстрелы"> Слышны выстрелы</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Подозрительная активность"> Подозрительная активность</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Автосигнализация"> Автосигнализация</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Найденный предмет"> Найденный предмет</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Mutual Aid"> Mutual Aid</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Природа звонка 911 неизвестна"> Природа звонка 911 неизвестна</label>
-                <label class="checkbox-label"><input type="checkbox" class="i_incident_type" value="Другое"> Другое</label>
-                <div></div>
-                <div></div>
+            <div class="doc-b-header">ИНЦИДЕНТ</div>
+            <div class="doc-b-content">
+                <div class="incident-grid-4">
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Незаконное проникновение"> Незаконное проникновение</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Кража со взломом"> Кража со взломом</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Драка"> Драка</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Помощь автомобилисту"> Помощь автомобилисту</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Преследование автомобиля"> Преследование автомобиля</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Неосторожное вождение"> Неосторожное вождение</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Публичный протест"> Публичный протест</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Трафик-стоп"> Трафик-стоп</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Вызов врача по запросу офицера"> Вызов врача по запросу офицера</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Сопровождение транспорта"> Сопровождение транспорта</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Пешее преследование"> Пешее преследование</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Больной человек"> Больной человек</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Нападение"> Нападение</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Нападение с огнестрельным оружием"> Нападение с огнестрельным оружием</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Фелони-стоп"> Фелони-стоп</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="ДТП без травм"> ДТП без травм</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="ДТП с травмами"> ДТП с травмами</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Без сознания / Обморок"> Без сознания / Обморок</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Пострадавший"> Пострадавший</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Слышны выстрелы"> Слышны выстрелы</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Подозрительная активность"> Подозрительная активность</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Автосигнализация"> Автосигнализация</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Найденный предмет"> Найденный предмет</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Mutual Aid"> Mutual Aid</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Природа звонка 911 неизвестна"> Природа звонка 911 неизвестна</label>
+                    <label class="checkbox-label"><input type="checkbox" class="i_incident" value="Другое"> Другое</label>
+                </div>
             </div>
-        </div>
         </div>
         <div class="doc-b-header">ВОВЛЕЧЁННЫЕ ЛИЦА</div>
         <div class="doc-b-content"><div id="inc_persons"></div><button type="button" class="btn-add" onclick="addIncPerson()">+ ДОБАВИТЬ ЛИЦО</button></div>
@@ -891,31 +870,6 @@ function checkTable(items) {
     return s;
 }
 
-// Чекбокс-таблица на несколько колонок. Используется для типов инцидента.
-function checkTableGrid(items, columns) {
-    columns = columns || 4;
-    var s = '[CENTER][TABLE]\n';
-
-    for (var i = 0; i < items.length; i += columns) {
-        s += '[TR]\n';
-
-        for (var c = 0; c < columns; c++) {
-            var item = items[i + c];
-
-            if (item) {
-                s += '[TD][CENTER]' + checkMark(item[0]) + ' ' + item[1] + '[/CENTER][/TD]\n';
-            } else {
-                s += '[TD][/TD]\n';
-            }
-        }
-
-        s += '[/TR]\n';
-    }
-
-    s += '[/TABLE][/CENTER]\n\n';
-    return s;
-}
-
 function reportHeader(title, cid) {
     return '[CENTER][SIZE=6][B]' + title + '[/B][/SIZE]\n' +
            '[SIZE=2][B]Номер дела:[/B] ' + cid + '[/SIZE][/CENTER]\n\n' +
@@ -924,6 +878,23 @@ function reportHeader(title, cid) {
 
 function checkMark(el) {
     return (el && el.checked) ? '[B][X][/B]' : '[ ]';
+}
+
+function incidentCheckTable(items) {
+    var s = '[CENTER][TABLE]\n';
+    for (var i = 0; i < items.length; i += 4) {
+        s += '[TR]\n';
+        for (var j = 0; j < 4; j++) {
+            if (items[i + j]) {
+                s += '[TD]' + checkMark(items[i + j][0]) + ' ' + items[i + j][1] + '[/TD]\n';
+            } else {
+                s += '[TD][/TD]\n';
+            }
+        }
+        s += '[/TR]\n';
+    }
+    s += '[/TABLE][/CENTER]\n\n';
+    return s;
 }
 
 // ---------- generation ----------
@@ -966,20 +937,16 @@ document.getElementById('submitBtn').onclick = function () {
             ]);
         }
 
-        var incidentTypeEls = document.querySelectorAll('.i_incident_type');
-        var incidentTypeItems = [];
-        var selectedIncidentTypes = [];
-
-        for (var i = 0; i < incidentTypeEls.length; i++) {
-            incidentTypeItems.push([incidentTypeEls[i], incidentTypeEls[i].value]);
-            if (incidentTypeEls[i].checked) {
-                selectedIncidentTypes.push(incidentTypeEls[i].value);
-            }
+        var incidentEls = active.querySelectorAll('.i_incident');
+        var incidentItems = [];
+        var selectedIncidents = [];
+        for (var ii = 0; ii < incidentEls.length; ii++) {
+            incidentItems.push([incidentEls[ii], incidentEls[ii].value]);
+            if (incidentEls[ii].checked) selectedIncidents.push(incidentEls[ii].value);
         }
 
-        subj = "[INCIDENT-" + cid + "] " + (selectedIncidentTypes.length
-            ? selectedIncidentTypes.join(", ")
-            : "Без указанного типа");
+        var incidentTitle = selectedIncidents.length ? selectedIncidents.join(', ') : 'Не указан';
+        subj = "[INCIDENT-" + cid + "] " + incidentTitle;
 
         bb = reportHeader('INCIDENT REPORT', cid) +
              sectionHeader('Информация об инциденте') +
@@ -992,7 +959,7 @@ document.getElementById('submitBtn').onclick = function () {
              ], 2) + hr() +
 
              sectionHeader('Инцидент') +
-             checkTableGrid(incidentTypeItems, 4) + hr() +
+             incidentCheckTable(incidentItems) +
 
              stackedRecords(
                  'Вовлечённые лица',
