@@ -202,6 +202,15 @@
     .copy-btn:hover { background: #26406b; }
     .copy-btn.copied { background: #2a8a2a; }
     .result-hint { font-size: 12px; color: #555; margin-top: 6px; }
+
+    .result-row textarea[readonly] {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+    .result-row input[readonly] {
+        min-width: 0;
+    }
 </style>
 </head>
 <body>
@@ -697,10 +706,10 @@ function fieldGrid(fields, columns) {
 
 // Один большой блок: серый заголовок + отдельная строка значения.
 function fieldBlock(label, value, asQuote) {
-    return '[CENTER][TABLE]\n' +
-           '[TR]\n[TH][CENTER][B]' + label + '[/B][/CENTER][/TH]\n[/TR]\n' +
-           '[TR]\n[TD][CENTER]' + (asQuote ? '[QUOTE]' + v(value) + '[/QUOTE]' : v(value)) + '[/CENTER][/TD]\n[/TR]\n' +
-           '[/TABLE]\n\n';
+    // Для развёрнутых ответов всегда используем полноширинный блок:
+    // заголовок отдельной строкой + текст ниже. Так XenForo не сжимает
+    // длинный ответ в узкую таблицу и не создаёт горизонтальный скролл.
+    return narrativeBlock(label, value);
 }
 
 // Большой текст выводим без вложенного [QUOTE] внутри таблицы. Это не даёт XenForo
@@ -712,6 +721,61 @@ function narrativeBlock(label, value) {
            '[TR]\n[TH][CENTER][B]' + label + '[/B][/CENTER][/TH]\n[/TR]\n' +
            '[/TABLE][/CENTER]\n' +
            '[QUOTE]' + text + '[/QUOTE]\n\n';
+}
+
+// Вертикальная карточка записи. Используется там, где среди полей есть
+// потенциально длинное описание: имущество, детали лица и т.п.
+function stackedRecord(recordTitle, fields) {
+    var s = sectionHeader(recordTitle);
+    var shortFields = [];
+    var hasLong = false;
+
+    fields.forEach(function (f) {
+        if (f[2]) {
+            hasLong = true;
+        } else {
+            shortFields.push([f[0], f[1]]);
+        }
+    });
+
+    if (shortFields.length) {
+        s += fieldGrid(shortFields, Math.min(2, shortFields.length));
+    }
+
+    fields.forEach(function (f) {
+        if (f[2]) {
+            s += narrativeBlock(f[0], f[1]);
+        }
+    });
+
+    return s;
+}
+
+// Вертикальный список карточек. В отличие от широкой таблицы каждая запись
+// занимает собственный блок, поэтому длинные значения всегда переносятся
+// вниз, а не растягивают всю таблицу вправо.
+function stackedRecords(sectionTitle, headers, rows, longIndexes) {
+    var s = sectionHeader(sectionTitle);
+
+    if (!rows.length) {
+        s += fieldGrid([[headers[0], '—']], 1);
+        return s;
+    }
+
+    rows.forEach(function (row, index) {
+        var fields = [];
+        headers.forEach(function (header, col) {
+            fields.push([
+                header,
+                row[col],
+                longIndexes.indexOf(col) !== -1
+            ]);
+        });
+        s += stackedRecord('Запись ' + (index + 1), fields);
+        if (index < rows.length - 1) s += hr();
+    });
+
+    return s;
 }
 
 // Таблица со списком — для вовлечённых лиц/имущества и т.п.
@@ -815,19 +879,25 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Время инцидента', active.querySelector('.i_time_inc').value],
                  ['Место инцидента', active.querySelector('.i_loc').value],
                  ['Тип инцидента', active.querySelector('.i_type').value]
-             ], 4) + hr() +
+             ], 2) + hr() +
 
-             sectionHeader('Вовлечённые лица') +
-             bbTable(['Тип', 'Имя', 'Дата рождения', 'Пол', 'Раса', 'Тел'], pRows) + hr() +
+             stackedRecords(
+                 'Вовлечённые лица',
+                 ['Тип', 'Имя', 'Дата рождения', 'Пол', 'Раса', 'Тел'],
+                 pRows,
+                 []
+             ) + hr() +
 
-             sectionHeader('Вовлечённое имущество') +
-             bbTable(['Статус', 'Наименование', 'Описание', 'Стоимость'], prRows) + hr() +
+             stackedRecords(
+                 'Вовлечённое имущество',
+                 ['Статус', 'Наименование', 'Описание', 'Стоимость'],
+                 prRows,
+                 [2]
+             ) + hr() +
 
-             sectionHeader('Метод совершения преступления') +
-             fieldBlock('Описание метода', active.querySelector('.i_mo').value, true) +
+             narrativeBlock('Метод совершения преступления', active.querySelector('.i_mo').value) +
 
-             sectionHeader('Хронологический отчёт') +
-             fieldBlock('Подробное описание ситуации', active.querySelector('.i_narr').value, true) + hr() +
+             narrativeBlock('Хронологический отчёт', active.querySelector('.i_narr').value) + hr() +
 
              sectionHeader('Информация об офицере') +
              fieldGrid([
@@ -891,14 +961,21 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Серийный номер', active.querySelector('.a_ser').value]
              ], 3) + hr() +
 
-             sectionHeader('Другие вовлечённые лица') +
-             bbTable(['Имя', 'Детали (пол, раса, дата рождения)'], pRows) + hr() +
+             stackedRecords(
+                 'Другие вовлечённые лица',
+                 ['Имя', 'Детали (пол, раса, дата рождения)'],
+                 pRows,
+                 [1]
+             ) + hr() +
 
-             sectionHeader('Подробности инцидента') +
-             fieldBlock('Описание', active.querySelector('.a_narr').value, true) + hr() +
+             narrativeBlock('Подробности инцидента', active.querySelector('.a_narr').value) + hr() +
 
-             sectionHeader('Изъятое имущество') +
-             bbTable(['Кол-во', 'Тип', 'Модель', 'Разное, цвет, калибр'], prRows);
+             stackedRecords(
+                 'Изъятое имущество',
+                 ['Кол-во', 'Тип', 'Модель', 'Разное, цвет, калибр'],
+                 prRows,
+                 [3]
+             );
     }
 
     else if (type === 'TRAFFIC') {
@@ -932,10 +1009,9 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Погодные условия', active.querySelector('.t_weather').value],
                  ['Дорожные условия', active.querySelector('.t_road').value]
              ], 3) +
-             fieldBlock('Подробности об инциденте', active.querySelector('.t_narr').value, true) +
+             narrativeBlock('Подробности об инциденте', active.querySelector('.t_narr').value) +
 
-             sectionHeader('Заключительные причины столкновения') +
-             fieldBlock('Причины', active.querySelector('.t_concl').value, true) + hr() +
+             narrativeBlock('Заключительные причины столкновения', active.querySelector('.t_concl').value) + hr() +
 
              sectionHeader('Дополнительно') +
              checkTable([
@@ -988,8 +1064,7 @@ document.getElementById('submitBtn').onclick = function () {
              sectionHeader('Использованные средства') +
              checkTable(toolEls) + hr() +
 
-             sectionHeader('Подробности (narrative)') +
-             narrativeBlock('Описание ситуации', active.querySelector('.u_narr').value);
+             narrativeBlock('Подробности (narrative)', active.querySelector('.u_narr').value);
     }
 
     else if (type === 'COMPLAINT') {
@@ -1010,7 +1085,7 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Дата', active.querySelector('.c_date').value],
                  ['Место', active.querySelector('.c_loc').value]
              ], 3) +
-             fieldBlock('Детали / показания', active.querySelector('.c_narr').value, true) +
+             narrativeBlock('Детали / показания', active.querySelector('.c_narr').value) +
              fieldGrid([
                  ['Вовлечённые лица', active.querySelector('.c_pers').value],
                  ['Вовлечённое имущество', active.querySelector('.c_prop').value]
@@ -1040,8 +1115,12 @@ document.getElementById('submitBtn').onclick = function () {
                  ['Причина изъятия', active.querySelector('.pr_reason').value]
              ], 2) + hr() +
 
-             sectionHeader('Список имущества') +
-             bbTable(['Кол-во', 'Предмет', 'Описание', 'Цена'], listRows);
+             stackedRecords(
+                 'Список имущества',
+                 ['Кол-во', 'Предмет', 'Описание', 'Цена'],
+                 listRows,
+                 [2]
+             );
     }
 
     else if (type === 'CCW') {
@@ -1064,8 +1143,8 @@ document.getElementById('submitBtn').onclick = function () {
              ], 3) + hr() +
 
              sectionHeader('Причина и изъятие') +
-             fieldBlock('Причина', active.querySelector('.ccw_reason').value, false) +
-             fieldBlock('Нарратив', active.querySelector('.ccw_narr').value, true) +
+             narrativeBlock('Причина', active.querySelector('.ccw_reason').value) +
+             narrativeBlock('Нарратив', active.querySelector('.ccw_narr').value) +
              fieldGrid([
                  ['Марка (Make)', active.querySelector('.ccw_make').value],
                  ['Модель (Model)', active.querySelector('.ccw_model').value],
@@ -1125,7 +1204,7 @@ document.getElementById('submitBtn').onclick = function () {
              fieldGrid([
                  ['Характер жалобы', active.querySelector('.int_allegation').value]
              ], 1) +
-             fieldBlock('Описание', active.querySelector('.int_narr').value, true);
+             narrativeBlock('Описание', active.querySelector('.int_narr').value);
     }
 
     document.getElementById('outTitle').value = subj;
