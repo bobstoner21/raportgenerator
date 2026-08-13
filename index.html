@@ -755,24 +755,37 @@ function stackedRecord(recordTitle, fields) {
 // занимает собственный блок, поэтому длинные значения всегда переносятся
 // вниз, а не растягивают всю таблицу вправо.
 function stackedRecords(sectionTitle, headers, rows, longIndexes) {
+    // Обычные списки оставляем в исходном виде. Меняем только длинные поля:
+    // короткие значения остаются строкой таблицы, длинный текст выводится
+    // отдельным полноширинным блоком, чтобы XenForo не создавал горизонтальный скролл.
     var s = sectionHeader(sectionTitle);
 
     if (!rows.length) {
-        s += fieldGrid([[headers[0], '—']], 1);
-        return s;
+        return s + bbTable(headers, rows);
     }
 
-    rows.forEach(function (row, index) {
-        var fields = [];
-        headers.forEach(function (header, col) {
-            fields.push([
-                header,
-                row[col],
-                longIndexes.indexOf(col) !== -1
-            ]);
+    var longCols = longIndexes || [];
+    if (!longCols.length) {
+        return s + bbTable(headers, rows);
+    }
+
+    rows.forEach(function (row, rowIndex) {
+        var shortFields = [];
+        headers.forEach(function (header, colIndex) {
+            if (longCols.indexOf(colIndex) === -1) {
+                shortFields.push([header, row[colIndex]]);
+            }
         });
-        s += stackedRecord('Запись ' + (index + 1), fields);
-        if (index < rows.length - 1) s += hr();
+
+        if (shortFields.length) {
+            s += fieldGrid(shortFields, Math.min(2, shortFields.length));
+        }
+
+        longCols.forEach(function (colIndex) {
+            s += narrativeBlock(headers[colIndex], row[colIndex]);
+        });
+
+        if (rowIndex < rows.length - 1) s += hr();
     });
 
     return s;
