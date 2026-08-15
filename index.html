@@ -939,14 +939,11 @@ document.getElementById('submitBtn').onclick = function () {
 
         var incidentEls = active.querySelectorAll('.i_incident');
         var incidentItems = [];
-        var selectedIncidents = [];
         for (var ii = 0; ii < incidentEls.length; ii++) {
             incidentItems.push([incidentEls[ii], incidentEls[ii].value]);
-            if (incidentEls[ii].checked) selectedIncidents.push(incidentEls[ii].value);
         }
 
-        var incidentTitle = selectedIncidents.length ? selectedIncidents.join(', ') : 'Не указан';
-        subj = "[INCIDENT-" + cid + "] " + incidentTitle;
+        subj = "[INCIDENT-" + cid + "]";
 
         bb = reportHeader('INCIDENT REPORT', cid) +
              sectionHeader('Информация об инциденте') +
