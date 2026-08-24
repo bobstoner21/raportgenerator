@@ -685,10 +685,6 @@ function copyField(id, btn) {
 }
 
 // =====================================================================
-// ---------- BBCode helpers: оформление под стандартный XenForo ----------
-// Все элементы результата собираются только из стандартных BBCode:
-// [TABLE], [TR], [TH], [TD], [B], [SIZE], [CENTER], [QUOTE], [HR].
-// Никаких кастомных тегов/стилей форума не требуется.
 // =====================================================================
 
 function v(val) {
@@ -701,18 +697,12 @@ function hr() {
     return '[HR][/HR]\n\n';
 }
 
-// Заголовок раздела в виде полноценного блока таблицы.
-// На стандартном XenForo [TH] обычно имеет серый фон — визуально это
-// ближе всего к заголовкам полей из эталонной формы.
 function sectionHeader(text) {
     return '[CENTER][TABLE]\n[TR]\n[TH][CENTER][SIZE=4][B]' + text + '[/B][/SIZE][/CENTER][/TH]\n[/TR]\n[/TABLE][/CENTER]\n\n';
 }
 
-// Несколько полей в одной сетке.
-// Пример: fieldGrid([['Имя','John'],['Фамилия','Doe']], 2)
-// даст две колонки: сверху названия, снизу значения.
+
 function fieldGrid(fields, columns) {
-    // Для читаемости в XenForo не делаем больше двух полей в ряд.
     columns = Math.min(columns || 2, 2);
     var s = '[CENTER][TABLE]\n';
     for (var i = 0; i < fields.length; i += columns) {
@@ -742,16 +732,11 @@ function fieldGrid(fields, columns) {
     return s;
 }
 
-// Один большой блок: серый заголовок + отдельная строка значения.
 function fieldBlock(label, value, asQuote) {
-    // Для развернутых ответов всегда используем полноширинный блок:
-    // заголовок отдельной строкой + текст ниже. Так XenForo не сжимает
-    // длинный ответ в узкую таблицу и не создает горизонтальный скролл.
+
     return narrativeBlock(label, value);
 }
 
-// Большой текст выводим без вложенного [QUOTE] внутри таблицы. Это не дает XenForo
-// растягивать ячейку по ширине и убирает горизонтальный скролл на длинных narrative.
 function narrativeBlock(label, value) {
     var text = v(value);
     if (!text) text = '—';
@@ -761,8 +746,7 @@ function narrativeBlock(label, value) {
            '[QUOTE]' + text + '[/QUOTE]\n\n';
 }
 
-// Вертикальная карточка записи. Используется там, где среди полей есть
-// потенциально длинное описание: имущество, детали лица и т.п.
+
 function stackedRecord(recordTitle, fields) {
     var s = sectionHeader(recordTitle);
     var shortFields = [];
@@ -789,9 +773,6 @@ function stackedRecord(recordTitle, fields) {
     return s;
 }
 
-// Вертикальный список карточек. В отличие от широкой таблицы каждая запись
-// занимает собственный блок, поэтому длинные значения всегда переносятся
-// вниз, а не растягивают всю таблицу вправо.
 function stackedRecords(sectionTitle, headers, rows, longIndexes) {
     var s = sectionHeader(sectionTitle);
 
@@ -804,9 +785,6 @@ function stackedRecords(sectionTitle, headers, rows, longIndexes) {
         return s + bbTable(headers, rows);
     }
 
-    // Сохраняем прежнее оформление обычных полей: они остаются
-    // полноценной таблицей. Меняем только длинные поля — они выводятся
-    // отдельным широким блоком, чтобы не растягивать таблицу по горизонтали.
     var shortHeaders = headers.filter(function (_, index) {
         return longCols.indexOf(index) === -1;
     });
@@ -831,7 +809,6 @@ function stackedRecords(sectionTitle, headers, rows, longIndexes) {
     return s;
 }
 
-// Таблица со списком — для вовлеченных лиц/имущества и т.п.
 function bbTable(headers, rows) {
     var s = '[CENTER][TABLE]\n[TR]\n';
 
@@ -861,7 +838,6 @@ function bbTable(headers, rows) {
     return s;
 }
 
-// Блок с чекбоксами — каждая опция находится в отдельной строке таблицы.
 function checkTable(items) {
     var s = '[CENTER][TABLE]\n';
     items.forEach(function (item) {
